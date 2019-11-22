@@ -28,18 +28,18 @@
 #include "bricklib2/hal/system_timer/system_timer.h"
 #include "bricklib2/logging/logging.h"
 #include "communication.h"
-#include "tcm5160.h"
+#include "tmc5160.h"
 
 int main(void) {
 	logging_init();
 	logd("Start Silent Stepper Bricklet 2.0\n\r");
 
 	communication_init();
-	tcm5160_init();
+	tmc5160_init();
 
 	while(true) {
 		bootloader_tick();
 		communication_tick();
-		tcm5160_tick();
+		tmc5160_tick();
 	}
 }
