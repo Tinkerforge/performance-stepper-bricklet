@@ -1,0 +1,437 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 2
+Title "Silent Stepper Bricklet 2.0"
+Date "2020-01-20"
+Rev "2.0"
+Comp "Tinkerforge GmbH"
+Comment1 "Licensed under CERN OHL v.1.1"
+Comment2 "Copyright (©) 2020, T.Schneidermann <tim@tinkerforge.com>"
+Comment3 ""
+Comment4 ""
+$EndDescr
+Text Notes 550  7750 0    40   ~ 0
+Copyright Tinkerforge GmbH 2020.\nThis documentation describes Open Hardware and is licensed under the\nCERN OHL v. 1.1.\nYou may redistribute and modify this documentation under the terms of the\nCERN OHL v.1.1. (http://ohwr.org/cernohl). This documentation is distributed\nWITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF\nMERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A\nPARTICULAR PURPOSE. Please see the CERN OHL v.1.1 for applicable\nconditions\n
+$Comp
+L tinkerforge:GND #PWR03
+U 1 1 4CE29748
+P 1600 6800
+F 0 "#PWR03" H 1600 6800 30  0001 C CNN
+F 1 "GND" H 1600 6730 30  0001 C CNN
+F 2 "" H 1600 6800 60  0001 C CNN
+F 3 "" H 1600 6800 60  0001 C CNN
+	1    1600 6800
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:DRILL U3
+U 1 1 4C6050A5
+P 10650 6150
+F 0 "U3" H 10700 6200 60  0001 C CNN
+F 1 "DRILL" H 10650 6150 60  0000 C CNN
+F 2 "kicad-libraries:DRILL_NP" H 10650 6150 60  0001 C CNN
+F 3 "" H 10650 6150 60  0001 C CNN
+	1    10650 6150
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:DRILL U4
+U 1 1 4C6050A2
+P 10650 6350
+F 0 "U4" H 10700 6400 60  0001 C CNN
+F 1 "DRILL" H 10650 6350 60  0000 C CNN
+F 2 "kicad-libraries:DRILL_NP" H 10650 6350 60  0001 C CNN
+F 3 "" H 10650 6350 60  0001 C CNN
+	1    10650 6350
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:DRILL U6
+U 1 1 4C60509F
+P 11000 6350
+F 0 "U6" H 11050 6400 60  0001 C CNN
+F 1 "DRILL" H 11000 6350 60  0000 C CNN
+F 2 "kicad-libraries:DRILL_NP" H 11000 6350 60  0001 C CNN
+F 3 "" H 11000 6350 60  0001 C CNN
+	1    11000 6350
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:DRILL U5
+U 1 1 4C605099
+P 11000 6150
+F 0 "U5" H 11050 6200 60  0001 C CNN
+F 1 "DRILL" H 11000 6150 60  0000 C CNN
+F 2 "kicad-libraries:DRILL_NP" H 11000 6150 60  0001 C CNN
+F 3 "" H 11000 6150 60  0001 C CNN
+	1    11000 6150
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:C C1
+U 1 1 4C5FD6ED
+P 1600 6400
+F 0 "C1" V 1650 6450 50  0000 L CNN
+F 1 "100nF" V 1550 6450 50  0000 L CNN
+F 2 "kicad-libraries:C0603F" H 1600 6400 60  0001 C CNN
+F 3 "" H 1600 6400 60  0001 C CNN
+	1    1600 6400
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:GND #PWR05
+U 1 1 4C5FCF4F
+P 1100 2500
+F 0 "#PWR05" H 1100 2500 30  0001 C CNN
+F 1 "GND" H 1100 2430 30  0001 C CNN
+F 2 "" H 1100 2500 60  0001 C CNN
+F 3 "" H 1100 2500 60  0001 C CNN
+	1    1100 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:CON-SENSOR2 P1
+U 1 1 4C5FCF27
+P 1100 1700
+F 0 "P1" H 1250 2100 60  0000 C CNN
+F 1 "CON-SENSOR2" V 1250 1700 60  0000 C CNN
+F 2 "kicad-libraries:CON-SENSOR2" H 1100 1700 60  0001 C CNN
+F 3 "" H 1100 1700 60  0001 C CNN
+	1    1100 1700
+	-1   0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:XMC1XXX24 U1
+U 1 1 5A856B8E
+P 2150 6450
+F 0 "U1" H 2000 6850 60  0000 C CNN
+F 1 "XMC1???" H 2150 6050 60  0000 C CNN
+F 2 "kicad-libraries:QFN24-4x4mm-0.5mm" H 2300 7200 60  0001 C CNN
+F 3 "" H 2300 7200 60  0000 C CNN
+	1    2150 6450
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:XMC1XXX24 U1
+U 3 1 5A856BE2
+P 2150 4400
+F 0 "U1" H 2000 4650 60  0000 C CNN
+F 1 "XMC1???" H 2150 4150 60  0000 C CNN
+F 2 "kicad-libraries:QFN24-4x4mm-0.5mm" H 2300 5150 60  0001 C CNN
+F 3 "" H 2300 5150 60  0000 C CNN
+	3    2150 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:XMC1XXX24 U1
+U 4 1 5A856C44
+P 2150 5250
+F 0 "U1" H 2000 5700 60  0000 C CNN
+F 1 "XMC1???" H 2150 4800 60  0000 C CNN
+F 2 "kicad-libraries:QFN24-4x4mm-0.5mm" H 2300 6000 60  0001 C CNN
+F 3 "" H 2300 6000 60  0000 C CNN
+	4    2150 5250
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:XMC1XXX24 U1
+U 2 1 5A856C89
+P 2150 3350
+F 0 "U1" H 2000 3900 60  0000 C CNN
+F 1 "XMC1???" H 2150 2800 60  0000 C CNN
+F 2 "kicad-libraries:QFN24-4x4mm-0.5mm" H 2300 4100 60  0001 C CNN
+F 3 "" H 2300 4100 60  0000 C CNN
+	2    2150 3350
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:VCC #PWR06
+U 1 1 5A85779D
+P 1600 6100
+F 0 "#PWR06" H 1600 6200 30  0001 C CNN
+F 1 "VCC" H 1600 6200 30  0000 C CNN
+F 2 "" H 1600 6100 60  0001 C CNN
+F 3 "" H 1600 6100 60  0001 C CNN
+	1    1600 6100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1600 6100 1600 6150
+Wire Wire Line
+	1800 6150 1600 6150
+Connection ~ 1600 6150
+Wire Wire Line
+	1600 6600 1600 6650
+Wire Wire Line
+	1800 6650 1600 6650
+Connection ~ 1600 6650
+Wire Wire Line
+	1800 6750 1600 6750
+Connection ~ 1600 6750
+$Comp
+L tinkerforge:C C3
+U 1 1 5A857E2E
+P 1650 2250
+F 0 "C3" V 1700 2300 50  0000 L CNN
+F 1 "220pF" V 1600 2300 50  0000 L CNN
+F 2 "kicad-libraries:C0402F" H 1650 2250 60  0001 C CNN
+F 3 "" H 1650 2250 60  0001 C CNN
+	1    1650 2250
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:C C4
+U 1 1 5A8580CD
+P 1750 1250
+F 0 "C4" V 1800 1300 50  0000 L CNN
+F 1 "10uF" V 1700 1300 50  0000 L CNN
+F 2 "kicad-libraries:C0805" H 1750 1250 60  0001 C CNN
+F 3 "" H 1750 1250 60  0001 C CNN
+	1    1750 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:C C5
+U 1 1 5A858141
+P 2200 1250
+F 0 "C5" V 2250 1300 50  0000 L CNN
+F 1 "1uF" V 2150 1300 50  0000 L CNN
+F 2 "kicad-libraries:C0603F" H 2200 1250 60  0001 C CNN
+F 3 "" H 2200 1250 60  0001 C CNN
+	1    2200 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:GND #PWR07
+U 1 1 5A8587EC
+P 1650 2500
+F 0 "#PWR07" H 1650 2500 30  0001 C CNN
+F 1 "GND" H 1650 2430 30  0001 C CNN
+F 2 "" H 1650 2500 60  0001 C CNN
+F 3 "" H 1650 2500 60  0001 C CNN
+	1    1650 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:R_PACK4 RP1
+U 1 1 5A858850
+P 2050 2050
+F 0 "RP1" H 2050 2500 50  0000 C CNN
+F 1 "82" H 2050 2000 50  0000 C CNN
+F 2 "kicad-libraries:4X0402" H 2050 2050 50  0001 C CNN
+F 3 "" H 2050 2050 50  0000 C CNN
+	1    2050 2050
+	1    0    0    -1  
+$EndComp
+Text GLabel 2500 1700 2    47   Output ~ 0
+S-CS
+Text GLabel 2500 1800 2    47   Output ~ 0
+S-CLK
+Text GLabel 2500 1900 2    47   Output ~ 0
+S-MOSI
+Text GLabel 2500 2000 2    47   Input ~ 0
+S-MISO
+$Comp
+L tinkerforge:VCC #PWR08
+U 1 1 5A859372
+P 2200 900
+F 0 "#PWR08" H 2200 1000 30  0001 C CNN
+F 1 "VCC" H 2200 1000 30  0000 C CNN
+F 2 "" H 2200 900 60  0001 C CNN
+F 3 "" H 2200 900 60  0001 C CNN
+	1    2200 900 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1450 2000 1650 2000
+Wire Wire Line
+	1850 1900 1450 1900
+Wire Wire Line
+	1450 1800 1850 1800
+Wire Wire Line
+	1850 1700 1450 1700
+Wire Wire Line
+	2250 1700 2500 1700
+Wire Wire Line
+	2250 1800 2500 1800
+Wire Wire Line
+	2250 1900 2500 1900
+Wire Wire Line
+	2250 2000 2500 2000
+Wire Wire Line
+	1650 2050 1650 2000
+Connection ~ 1650 2000
+Wire Wire Line
+	1650 2450 1650 2500
+Wire Wire Line
+	1100 2150 1100 2500
+Wire Wire Line
+	1450 1500 1750 1500
+Wire Wire Line
+	1750 1500 1750 1450
+Wire Wire Line
+	2200 1450 2200 1500
+Connection ~ 1750 1500
+Wire Wire Line
+	1450 1600 1550 1600
+Wire Wire Line
+	1550 1600 1550 1000
+Wire Wire Line
+	1550 1000 1750 1000
+Wire Wire Line
+	2200 900  2200 1000
+Wire Wire Line
+	1750 1000 1750 1050
+Connection ~ 1750 1000
+Connection ~ 2200 1000
+Connection ~ 2200 1500
+$Comp
+L tinkerforge:GND #PWR09
+U 1 1 5A859DDE
+P 2200 1550
+F 0 "#PWR09" H 2200 1550 30  0001 C CNN
+F 1 "GND" H 2200 1480 30  0001 C CNN
+F 2 "" H 2200 1550 60  0001 C CNN
+F 3 "" H 2200 1550 60  0001 C CNN
+	1    2200 1550
+	1    0    0    -1  
+$EndComp
+NoConn ~ 1450 1400
+Text GLabel 1600 3600 0    47   Input ~ 0
+S-CS
+Text GLabel 1600 3700 0    47   Input ~ 0
+S-CLK
+Text GLabel 1600 3800 0    47   Input ~ 0
+S-MOSI
+Text GLabel 1600 4900 0    47   Output ~ 0
+S-MISO
+Wire Wire Line
+	1600 3600 1800 3600
+Wire Wire Line
+	1800 3700 1600 3700
+Wire Wire Line
+	1600 3800 1800 3800
+Wire Wire Line
+	1600 4900 1800 4900
+NoConn ~ 1800 4550
+NoConn ~ 1800 4450
+NoConn ~ 1800 4350
+NoConn ~ 1800 4250
+$Comp
+L tinkerforge:R R1
+U 1 1 5A85CFF4
+P 1450 5500
+F 0 "R1" V 1450 5600 50  0000 C CNN
+F 1 "1k" V 1450 5400 50  0000 C CNN
+F 2 "kicad-libraries:R0603F" H 1450 5500 60  0001 C CNN
+F 3 "" H 1450 5500 60  0000 C CNN
+	1    1450 5500
+	0    1    1    0   
+$EndComp
+$Comp
+L tinkerforge:LED D1
+U 1 1 5A85D073
+P 900 5500
+F 0 "D1" H 900 5600 50  0000 C CNN
+F 1 "blue" H 900 5400 50  0000 C CNN
+F 2 "kicad-libraries:D0603F" H 900 5500 50  0001 C CNN
+F 3 "" H 900 5500 50  0000 C CNN
+	1    900  5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:VCC #PWR010
+U 1 1 5A85D0EC
+P 650 5450
+F 0 "#PWR010" H 650 5550 30  0001 C CNN
+F 1 "VCC" H 650 5550 30  0000 C CNN
+F 2 "" H 650 5450 60  0001 C CNN
+F 3 "" H 650 5450 60  0001 C CNN
+	1    650  5450
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:CONN_01X02 P3
+U 1 1 5A85D115
+P 1450 5250
+F 0 "P3" H 1450 5100 50  0000 C CNN
+F 1 "BOOT" V 1550 5250 50  0000 C CNN
+F 2 "kicad-libraries:SolderJumper" H 1450 5250 50  0001 C CNN
+F 3 "" H 1450 5250 50  0000 C CNN
+	1    1450 5250
+	-1   0    0    1   
+$EndComp
+$Comp
+L tinkerforge:GND #PWR011
+U 1 1 5A85D377
+P 1700 5350
+F 0 "#PWR011" H 1700 5350 30  0001 C CNN
+F 1 "GND" H 1700 5280 30  0001 C CNN
+F 2 "" H 1700 5350 60  0001 C CNN
+F 3 "" H 1700 5350 60  0001 C CNN
+	1    1700 5350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1650 5200 1800 5200
+Wire Wire Line
+	1650 5300 1700 5300
+Wire Wire Line
+	1700 5300 1700 5350
+Wire Wire Line
+	1800 5500 1700 5500
+Wire Wire Line
+	1200 5500 1100 5500
+Wire Wire Line
+	700  5500 650  5500
+Wire Wire Line
+	650  5500 650  5450
+NoConn ~ 1800 5400
+NoConn ~ 1800 5300
+NoConn ~ 1800 5600
+NoConn ~ 1800 5100
+NoConn ~ 1800 5000
+Text Notes 2600 3800 0    39   ~ 0
+SPI Slave/CH0\nP0.13 : USIC0_CH0-DX2F : SEL\nP0.14 : USIC0_CH0-DX1A : CLK\nP0.15 : USIC0_CH0-DX0B : MOSI\nP2.0 : USIC0_CH0-DOUT0 : MISO
+$Comp
+L tinkerforge:CONN_01X01 P2
+U 1 1 5A85E12C
+P 1300 2900
+F 0 "P2" H 1300 2800 50  0000 C CNN
+F 1 "DEBUG" V 1400 2900 50  0000 C CNN
+F 2 "kicad-libraries:DEBUG_PAD" H 1300 2900 50  0001 C CNN
+F 3 "" H 1300 2900 50  0000 C CNN
+	1    1300 2900
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1500 2900 1800 2900
+NoConn ~ 1800 3500
+NoConn ~ 1800 3200
+NoConn ~ 1800 3000
+Wire Wire Line
+	1600 6150 1600 6200
+Wire Wire Line
+	1600 6650 1600 6750
+Wire Wire Line
+	1600 6750 1600 6800
+Wire Wire Line
+	1650 2000 1850 2000
+Wire Wire Line
+	1750 1500 2200 1500
+Wire Wire Line
+	1750 1000 2200 1000
+Wire Wire Line
+	2200 1000 2200 1050
+Wire Wire Line
+	2200 1500 2200 1550
+$Sheet
+S 6050 7100 800  500 
+U 5E2859D2
+F0 "TMC 5160" 50
+F1 "tmc.sch" 50
+$EndSheet
+$EndSCHEMATC
