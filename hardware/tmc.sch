@@ -47,7 +47,7 @@ F 1 "OUT" H 10428 3550 50  0000 L CNN
 F 2 "kicad-libraries:OQ_4P_5mm_Vertical" H 10300 3600 60  0001 C CNN
 F 3 "" H 10300 3600 60  0000 C CNN
 	1    10300 3600
-	1    0    0    -1  
+	1    0    0    1   
 $EndComp
 $Comp
 L tinkerforge:MOSFET_N_CH Q?
@@ -730,13 +730,13 @@ F 3 "" H 8200 1650 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	9400 3450 9950 3450
+	9400 3450 9650 3450
 Wire Wire Line
-	9200 3550 9950 3550
+	9200 3550 9900 3550
 Wire Wire Line
-	9200 3650 9950 3650
+	9200 3650 9900 3650
 Wire Wire Line
-	9950 3750 9400 3750
+	9950 3750 9650 3750
 Wire Wire Line
 	3400 4900 3400 5100
 Wire Wire Line
@@ -1289,4 +1289,112 @@ Wire Wire Line
 	2200 4050 2200 4000
 Wire Wire Line
 	2200 4000 1900 4000
+$Comp
+L tinkerforge:Cs C29
+U 1 1 5E38203E
+P 9900 3950
+F 0 "C29" H 9850 3850 31  0000 C CNN
+F 1 "1nF/100V" H 10000 4050 20  0000 C CNN
+F 2 "kicad-libraries:C0603F" H 9900 3950 60  0001 C CNN
+F 3 "" H 9900 3950 60  0000 C CNN
+	1    9900 3950
+	-1   0    0    1   
+$EndComp
+$Comp
+L tinkerforge:Cs C27
+U 1 1 5E385C3F
+P 9650 3950
+F 0 "C27" H 9600 3850 31  0000 C CNN
+F 1 "1nF/100V" H 9750 4050 20  0000 C CNN
+F 2 "kicad-libraries:C0603F" H 9650 3950 60  0001 C CNN
+F 3 "" H 9650 3950 60  0000 C CNN
+	1    9650 3950
+	-1   0    0    1   
+$EndComp
+$Comp
+L tinkerforge:Cs C26
+U 1 1 5E38611B
+P 9650 3200
+F 0 "C26" H 9600 3100 31  0000 C CNN
+F 1 "1nF/100V" H 9750 3300 20  0000 C CNN
+F 2 "kicad-libraries:C0603F" H 9650 3200 60  0001 C CNN
+F 3 "" H 9650 3200 60  0000 C CNN
+	1    9650 3200
+	-1   0    0    1   
+$EndComp
+$Comp
+L tinkerforge:Cs C28
+U 1 1 5E386826
+P 9900 3200
+F 0 "C28" H 9850 3100 31  0000 C CNN
+F 1 "1nF/100V" H 10000 3300 20  0000 C CNN
+F 2 "kicad-libraries:C0603F" H 9900 3200 60  0001 C CNN
+F 3 "" H 9900 3200 60  0000 C CNN
+	1    9900 3200
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	9650 3850 9650 3750
+Connection ~ 9650 3750
+Wire Wire Line
+	9650 3750 9400 3750
+Wire Wire Line
+	9900 3850 9900 3650
+Connection ~ 9900 3650
+Wire Wire Line
+	9900 3650 9950 3650
+Wire Wire Line
+	9900 3550 9900 3300
+Connection ~ 9900 3550
+Wire Wire Line
+	9900 3550 9950 3550
+Wire Wire Line
+	9650 3450 9650 3300
+Connection ~ 9650 3450
+Wire Wire Line
+	9650 3450 9950 3450
+Wire Wire Line
+	9650 3100 9650 2950
+Wire Wire Line
+	9650 2950 9900 2950
+Wire Wire Line
+	9900 2950 9900 3100
+Wire Wire Line
+	9900 2950 10100 2950
+Wire Wire Line
+	10100 2950 10100 3000
+Connection ~ 9900 2950
+$Comp
+L tinkerforge:GND #PWR024
+U 1 1 5E4063D2
+P 10100 3000
+F 0 "#PWR024" H 10100 2750 50  0001 C CNN
+F 1 "GND" H 10105 2827 50  0000 C CNN
+F 2 "" H 10100 3000 50  0000 C CNN
+F 3 "" H 10100 3000 50  0000 C CNN
+	1    10100 3000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9650 4050 9650 4200
+Wire Wire Line
+	9650 4200 9900 4200
+Wire Wire Line
+	9900 4200 9900 4050
+Wire Wire Line
+	9900 4200 10100 4200
+Wire Wire Line
+	10100 4200 10100 4250
+Connection ~ 9900 4200
+$Comp
+L tinkerforge:GND #PWR025
+U 1 1 5E4339A0
+P 10100 4250
+F 0 "#PWR025" H 10100 4000 50  0001 C CNN
+F 1 "GND" H 10105 4077 50  0000 C CNN
+F 2 "" H 10100 4250 50  0000 C CNN
+F 3 "" H 10100 4250 50  0000 C CNN
+	1    10100 4250
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
