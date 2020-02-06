@@ -298,8 +298,8 @@ L tinkerforge:CPs C21
 U 1 1 5E2E38B0
 P 8650 1300
 F 0 "C21" H 8550 1350 31  0000 L CNN
-F 1 "220uF/100V/LowESR" V 8750 1100 20  0000 L CNN
-F 2 "kicad-libraries:ELKO_103" H 8650 1300 60  0001 C CNN
+F 1 "220uF/100V/UVY2A221MHD1TO" V 8750 1100 20  0000 L CNN
+F 2 "kicad-libraries:ELKO_RAD_12" H 8650 1300 60  0001 C CNN
 F 3 "" H 8650 1300 60  0000 C CNN
 	1    8650 1300
 	1    0    0    -1  
@@ -637,7 +637,7 @@ U 1 1 5E3C589F
 P 5450 1000
 F 0 "C17" H 5350 1050 31  0000 C CNN
 F 1 "2,2uF/100V" H 5300 900 31  0000 C CNN
-F 2 "kicad-libraries:C0603F" H 5450 1000 60  0001 C CNN
+F 2 "kicad-libraries:C1206E" H 5450 1000 60  0001 C CNN
 F 3 "" H 5450 1000 60  0000 C CNN
 	1    5450 1000
 	1    0    0    -1  
@@ -940,7 +940,7 @@ U 1 1 5E2BBC47
 P 5800 1000
 F 0 "C18" H 5700 1050 31  0000 C CNN
 F 1 "2,2uF/100V" H 5650 900 31  0000 C CNN
-F 2 "kicad-libraries:C0603F" H 5800 1000 60  0001 C CNN
+F 2 "kicad-libraries:C1206E" H 5800 1000 60  0001 C CNN
 F 3 "" H 5800 1000 60  0000 C CNN
 	1    5800 1000
 	1    0    0    -1  
@@ -959,62 +959,25 @@ Wire Wire Line
 Wire Wire Line
 	5050 1300 5400 1300
 $Comp
-L tinkerforge:CPs C19
-U 1 1 5E2CF02D
-P 8100 1300
-F 0 "C19" H 8000 1350 31  0000 L CNN
-F 1 "220uF/100V/LowESR" V 8200 1100 20  0000 L CNN
-F 2 "kicad-libraries:ELKO_103" H 8100 1300 60  0001 C CNN
-F 3 "" H 8100 1300 60  0000 C CNN
-	1    8100 1300
-	1    0    0    -1  
-$EndComp
-$Comp
 L tinkerforge:CPs C20
 U 1 1 5E2CF502
 P 8350 1300
 F 0 "C20" H 8250 1350 31  0000 L CNN
-F 1 "220uF/100V/LowESR" V 8450 1100 20  0000 L CNN
-F 2 "kicad-libraries:ELKO_103" H 8350 1300 60  0001 C CNN
+F 1 "220uF/100V/UVY2A221MHD1TO" V 8450 1100 20  0000 L CNN
+F 2 "kicad-libraries:ELKO_RAD_12" H 8350 1300 60  0001 C CNN
 F 3 "" H 8350 1300 60  0000 C CNN
 	1    8350 1300
 	1    0    0    -1  
 $EndComp
-$Comp
-L tinkerforge:CPs C22
-U 1 1 5E2CF915
-P 8900 1300
-F 0 "C22" H 8800 1350 31  0000 L CNN
-F 1 "220uF/100V/LowESR" V 9000 1100 20  0000 L CNN
-F 2 "kicad-libraries:ELKO_103" H 8900 1300 60  0001 C CNN
-F 3 "" H 8900 1300 60  0000 C CNN
-	1    8900 1300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8100 1400 8100 1650
-Wire Wire Line
-	8100 1650 8350 1650
 Wire Wire Line
 	8500 1650 8650 1650
-Wire Wire Line
-	8900 1650 8900 1400
 Connection ~ 8500 1650
 Wire Wire Line
 	8650 1400 8650 1650
-Connection ~ 8650 1650
-Wire Wire Line
-	8650 1650 8900 1650
 Wire Wire Line
 	8350 1400 8350 1650
-Connection ~ 8350 1650
 Wire Wire Line
 	8350 1650 8500 1650
-Wire Wire Line
-	8100 1200 8100 900 
-Connection ~ 8100 900 
-Wire Wire Line
-	8100 900  8350 900 
 Wire Wire Line
 	8350 900  8350 1200
 Connection ~ 8350 900 
@@ -1023,11 +986,6 @@ Wire Wire Line
 Wire Wire Line
 	8650 1200 8650 900 
 Connection ~ 8650 900 
-Wire Wire Line
-	8650 900  8900 900 
-Wire Wire Line
-	8900 900  8900 1200
-Connection ~ 8900 900 
 $Comp
 L tinkerforge:R_PACK4 RP2
 U 1 1 5E3496B0
@@ -1396,10 +1354,6 @@ F 3 "" H 10050 1150 60  0000 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	7950 900  8100 900 
-Wire Wire Line
-	8900 900  9250 900 
-Wire Wire Line
 	10600 1400 10600 1100
 Wire Wire Line
 	10600 900  10300 900 
@@ -1431,4 +1385,8 @@ Wire Wire Line
 	10050 1400 10300 1400
 Wire Wire Line
 	10050 900  10300 900 
+Wire Wire Line
+	7950 900  8350 900 
+Wire Wire Line
+	8650 900  9250 900 
 $EndSCHEMATC
