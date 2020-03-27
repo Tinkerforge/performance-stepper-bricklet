@@ -15,21 +15,34 @@
 TMC5160 tmc5160;
 CoopTask tmc5160_task;
 
-static uint32_t tmc5160_register_read(const uint8_t reg) {
+uint32_t tmc5160_task_register_read(const uint8_t reg) {
 	uint8_t tmp[5] = {
 		TMC5160_SPI_READ | reg, 
 		0, 0, 0, 0
 	};
 
-	if(!spi_fifo_coop_transceive(&tmc5160.spi_fifo, 5, tmp, tmp)) {
-		// TODO: ERROR
+
+	// First read sets pointer
+	uint8_t tmp_read1[5] = {0};
+	if(!spi_fifo_coop_transceive(&tmc5160.spi_fifo, 5, tmp, tmp_read1)) {
+		// TODO: Reset SPI here in case of error?
+		tmc5160.last_status = 0xFF;
+		return 0xFFFFFFFF;
 	}
 
-	tmc5160.last_status = tmp[0];
-	return (tmp[1] << 24) | (tmp[2] << 16) | (tmp[3] << 8) | (tmp[4] << 0);
+	// Second read gets actual data
+	uint8_t tmp_read2[5] = {0};
+	if(!spi_fifo_coop_transceive(&tmc5160.spi_fifo, 5, tmp, tmp_read2)) {
+		// TODO: Reset SPI here in case of error?
+		tmc5160.last_status = 0xFF;
+		return 0xFFFFFFFF;
+	}
+
+	tmc5160.last_status = tmp_read2[0];
+	return (tmp_read2[1] << 24) | (tmp_read2[2] << 16) | (tmp_read2[3] << 8) | (tmp_read2[4] << 0);
 }
 
-static void tmc5160_register_write(const uint8_t reg, uint32_t data) {
+void tmc5160_task_register_write(const uint8_t reg, const uint32_t data) {
 	uint8_t tmp[5] = {
 		TMC5160_SPI_WRITE | reg,
 		(data >> 24) & 0xFF,
@@ -39,15 +52,17 @@ static void tmc5160_register_write(const uint8_t reg, uint32_t data) {
 	};
 
 	if(!spi_fifo_coop_transceive(&tmc5160.spi_fifo, 5, tmp, tmp)) {
-		// TODO: ERROR
+		// TODO: Reset SPI here in case of error?
+		tmc5160.last_status = 0xFF;
+		return;
 	}
 
 	tmc5160.last_status = tmp[0];
 }
 
-static void tmc5160_register_log(void) {
+static void tmc5160_task_register_log(void) {
 	for(uint8_t reg = 0; reg < 127; reg++) {
-		uint32_t value = tmc5160_register_read(reg);
+		uint32_t value = tmc5160_task_register_read(reg);
 		logd("Register %d: %u (status: %b)\n\r", reg, value, tmc5160.last_status);
 		coop_task_yield();
 	}
@@ -94,14 +109,34 @@ void tmc5160_tick_task(void) {
 	};
 	XMC_GPIO_Init(TMC5160_ENABLE_PIN, &enable_pin_config);
 
+	// We start off with reading all registers into memory
+	for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
+		tmc5160.registers.regs[i] = tmc5160_task_register_read(i);
+	}
+
 	while(true) {
-		coop_task_sleep_ms(1000);
-		logd("tick\n\r");
-		tmc5160_register_log();
+		// Write necessary registers
+		for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
+			if(tmc5160.registers_write[i]) {
+				tmc5160_task_register_write(i, tmc5160.registers.regs[i]);
+				tmc5160.registers_write[i] = false;
+			}
+		}
+
+		// Read necessary registers
+		for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
+			if(tmc5160.registers_read[i]) {
+				tmc5160.registers.regs[i] = tmc5160_task_register_read(i);
+				tmc5160.registers_read[i] = false;
+			}
+		}
+
+		coop_task_yield();
 	}
 }
 
 void tmc5160_init(void) {
+	memset(&tmc5160, 0, sizeof(TMC5160));
 	coop_task_init(&tmc5160_task, tmc5160_tick_task);
 
 	tmc5160_init_spi();
