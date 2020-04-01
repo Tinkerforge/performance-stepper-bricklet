@@ -33,7 +33,7 @@ U 1 1 5E2B5774
 P 10950 1000
 F 0 "P1" H 11078 1028 40  0000 L CNN
 F 1 "VIN" H 11078 952 40  0000 L CNN
-F 2 "kicad-libraries:OQ_2P_5mm_Vertical" H 10950 1000 60  0001 C CNN
+F 2 "kicad-libraries:OQ_2P_5mm_Vertical_Black" H 10950 1000 60  0001 C CNN
 F 3 "" H 10950 1000 60  0000 C CNN
 	1    10950 1000
 	1    0    0    -1  
