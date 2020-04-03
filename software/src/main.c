@@ -30,6 +30,8 @@
 #include "bricklib2/os/coop_task.h"
 #include "communication.h"
 #include "tmc5160.h"
+#include "gpio.h"
+#include "voltage.h"
 
 // We run communication and bootloader tick in task,
 // so we can yield to tmc5160 task from within the getter.
@@ -49,9 +51,13 @@ int main(void) {
 	communication_init();
 	coop_task_init(&main_task, main_tick_task);
 	tmc5160_init();
+	gpio_init();
+	voltage_init();
 
 	while(true) {
 		coop_task_tick(&main_task);
 		tmc5160_tick();
+		gpio_tick();
+		voltage_tick();
 	}
 }
