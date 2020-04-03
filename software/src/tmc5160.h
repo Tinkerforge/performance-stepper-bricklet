@@ -1,3 +1,24 @@
+/* silent-stepper-v2-bricklet
+ * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
+ *
+ * tmc5160.h: Driver for TMC5160
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
+ */
+
 #ifndef TMC5160_H
 #define TMC5160_H
 
@@ -88,16 +109,6 @@
 #define TMC5160_REG_MSLUT_NUM     8
 #define TMC5160_READ              0
 #define TMC5160_WRITE             0x80
-
-typedef struct {
-	uint16_t standstill_current;
-	uint16_t motor_run_current;
-	uint16_t standstill_delay_time;
-	uint16_t power_down_time;
-	uint16_t stealth_threshold;
-	uint16_t coolstep_threshold;
-	uint16_t classic_threshold;
-} TMC5160HighLevel;
 
 typedef union {
 	struct {
@@ -225,7 +236,7 @@ typedef union {
 
 typedef union {
 	struct {
-		uint32_t global_scaler:5;
+		uint32_t global_scaler:8;
 	} bit;
 	uint32_t reg;
 } TMC5160RegGLOBAL_SCALER;
@@ -251,7 +262,7 @@ typedef union {
 
 typedef union {
 	struct {
-		uint32_t delay:8;
+		uint32_t tpowerdown:8;
 	} bit;
 	uint32_t reg;
 } TMC5160RegTPOWERDOWN;
@@ -265,21 +276,21 @@ typedef union {
 
 typedef union {
 	struct {
-		uint32_t velocity:20;
+		uint32_t tpwmthrs:20;
 	} bit;
 	uint32_t reg;
 } TMC5160RegTPWMTHRS;
 
 typedef union {
 	struct {
-		uint32_t velocity:20;
+		uint32_t tcoolthrs:20;
 	} bit;
 	uint32_t reg;
 } TMC5160RegTCOOLTHRS;
 
 typedef union {
 	struct {
-		uint32_t velocity:20;
+		uint32_t thigh:20;
 	} bit;
 	uint32_t reg;
 } TMC5160RegTHIGH;
@@ -307,7 +318,7 @@ typedef union {
 
 typedef union {
 	struct {
-		uint32_t vactual:18;
+		uint32_t vstart:18;
 	} bit;
 	uint32_t reg;
 } TMC5160RegVSTART;
@@ -713,7 +724,13 @@ typedef struct {
 	bool registers_write[TMC5160_NUM_REGISTERS];
 	bool registers_read[TMC5160_NUM_REGISTERS];
 
+	uint16_t high_level_standstill_current;
+	uint16_t high_level_motor_run_current;
+	uint16_t high_level_current;
+	int32_t  high_level_last_steps;
 	uint8_t last_status;
+
+	uint32_t last_read_time;
 } TMC5160;
 
 uint32_t tmc5160_task_register_read(const uint8_t reg);

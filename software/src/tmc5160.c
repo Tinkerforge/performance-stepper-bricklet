@@ -1,3 +1,24 @@
+/* silent-stepper-v2-bricklet
+ * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
+ *
+ * tmc5160.c: Driver for TMC5160
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
+ */
+
 #include "tmc5160.h"
 
 #include <stdbool.h>
@@ -105,13 +126,14 @@ static void tmc5160_init_spi(void) {
 void tmc5160_tick_task(void) {
 	const XMC_GPIO_CONFIG_t enable_pin_config = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
-		.output_level     = XMC_GPIO_OUTPUT_LEVEL_LOW
+		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
 	};
 	XMC_GPIO_Init(TMC5160_ENABLE_PIN, &enable_pin_config);
 
 	// We start off with reading all registers into memory
 	for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
 		tmc5160.registers.regs[i] = tmc5160_task_register_read(i);
+		logd("read %x -> %d\n\r", i, tmc5160.registers.regs[i]);
 	}
 
 	while(true) {
@@ -119,6 +141,7 @@ void tmc5160_tick_task(void) {
 		for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
 			if(tmc5160.registers_write[i]) {
 				tmc5160_task_register_write(i, tmc5160.registers.regs[i]);
+				logd("write %x -> %d\n\r", i, tmc5160.registers.regs[i]);
 				tmc5160.registers_write[i] = false;
 			}
 		}
@@ -127,8 +150,14 @@ void tmc5160_tick_task(void) {
 		for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
 			if(tmc5160.registers_read[i]) {
 				tmc5160.registers.regs[i] = tmc5160_task_register_read(i);
+//				logd("read %x -> %d\n\r", i, tmc5160.registers.regs[i]);
 				tmc5160.registers_read[i] = false;
 			}
+		}
+
+		if(system_timer_is_time_elapsed_ms(tmc5160.last_read_time, 1)) {
+			tmc5160.last_read_time = system_timer_get_ms();
+			tmc5160.registers_read[TMC5160_REG_XACTUAL] = true;
 		}
 
 		coop_task_yield();
@@ -137,6 +166,7 @@ void tmc5160_tick_task(void) {
 
 void tmc5160_init(void) {
 	memset(&tmc5160, 0, sizeof(TMC5160));
+
 	coop_task_init(&tmc5160_task, tmc5160_tick_task);
 
 	tmc5160_init_spi();
