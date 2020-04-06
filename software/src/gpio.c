@@ -23,6 +23,7 @@
 #include "configs/config_gpio.h"
 
 #include "communication.h"
+#include "bricklib2/hal/system_timer/system_timer.h"
 
 #include "xmc_gpio.h"
 #include "xmc_eru.h"
@@ -31,28 +32,73 @@
 #define gpio_0_handler IRQ_Hdlr_5
 #define gpio_1_handler IRQ_Hdlr_6
 
+typedef struct {
+	XMC_GPIO_PORT_t *const port;
+	const uint8_t pin;
+	uint8_t irq_n;
+} GPIOPins;
+
+static const GPIOPins gpio_pins[GPIO_CHANNEL_NUM] = {
+	{GPIO_0_PIN, GPIO_0_IRQ_N},
+	{GPIO_1_PIN, GPIO_1_IRQ_N}
+};
+
+static const GPIOPins gpio_led_pins[GPIO_CHANNEL_NUM] = {
+	{P1_5, 0},
+	{P1_6, 0}
+};
+
 GPIO gpio;
 
-volatile bool gpio_0_interrupt = false;
-volatile bool gpio_1_interrupt = false;
+static inline void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) handle_new_gpio_value(const uint8_t channel) {
+	// Check if value changed
+	const bool value = XMC_GPIO_GetInput(gpio_pins[channel].port, gpio_pins[channel].pin);
+	if(gpio.last_interrupt_value[channel] == value) {
+		return;
+	}
+
+	// Save value
+	gpio.last_interrupt_value[channel] = value;
+
+	// Turn interrupt off if debounce is enabled
+	if(gpio.debounce != 0) {
+		gpio.last_interrupt_time[channel]  = system_timer_get_ms();
+		NVIC_DisableIRQ(gpio_pins[channel].irq_n);
+		NVIC_ClearPendingIRQ(gpio_pins[channel].irq_n);
+	}
+
+	// TODO: handle callback here
+
+	// Check if action is necessary
+	if(value && (gpio.action[channel] & SILENT_STEPPER_V2_GPIO_ACTION_EMERGENCY_STOP_RISING_EDGE)) {
+		gpio.stop_emergency = true;
+	} else if(value && (gpio.action[channel] & SILENT_STEPPER_V2_GPIO_ACTION_NORMAL_STOP_RISING_EDGE)) {
+		gpio.stop_normal    = true;
+	} else if(!value && (gpio.action[channel] & SILENT_STEPPER_V2_GPIO_ACTION_EMERGENCY_STOP_FALLING_EDGE)) {
+		gpio.stop_emergency = true;
+	} else if(!value && (gpio.action[channel] & SILENT_STEPPER_V2_GPIO_ACTION_NORMAL_STOP_FALLING_EDGE)) {
+		gpio.stop_normal    = true;
+	}
+
+	// Set LED
+	if(value) {
+		XMC_GPIO_SetOutputHigh(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+	} else {
+		XMC_GPIO_SetOutputLow(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+	}
+}
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) gpio_0_handler(void) {
-    gpio_0_interrupt = XMC_GPIO_GetInput(GPIO_0_PIN);
-	if(gpio_0_interrupt) {
-		XMC_GPIO_SetOutputHigh(P1_5);
-	} else {
-		XMC_GPIO_SetOutputLow(P1_5);
-	}
+	handle_new_gpio_value(0);
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) gpio_1_handler(void) {
-    gpio_1_interrupt = XMC_GPIO_GetInput(GPIO_1_PIN);
-	if(gpio_1_interrupt) {
-		XMC_GPIO_SetOutputHigh(P1_6);
-	} else {
-		XMC_GPIO_SetOutputLow(P1_6);
-	}
+	handle_new_gpio_value(1);
 }
+/*
+bool gpio_is_motion_disabled(void) {
+	return (gpio.action[0] & )
+}*/
 
 void gpio_init(void) {
     memset(&gpio, 0, sizeof(GPIO));
@@ -63,6 +109,7 @@ void gpio_init(void) {
 	gpio.stop_deceleration = 0xFFFF;
 
 
+	// Init GPIO IRQs
 	const XMC_GPIO_CONFIG_t gpio_pin_config = {
 		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
 		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_LARGE
@@ -104,15 +151,33 @@ void gpio_init(void) {
 	NVIC_EnableIRQ(GPIO_1_IRQ_N);
 
 
+	// Init GPIO LEDs
 	const XMC_GPIO_CONFIG_t led_pin_config = {
 		.mode         = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
 		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW
 	};
 
-	XMC_GPIO_Init(P1_5, &led_pin_config);
-	XMC_GPIO_Init(P1_6, &led_pin_config);
+	for(uint8_t channel = 0; channel < GPIO_CHANNEL_NUM; channel++) {
+		XMC_GPIO_Init(gpio_led_pins[channel].port, gpio_led_pins[channel].pin, &led_pin_config);
+
+		const bool value = XMC_GPIO_GetInput(gpio_pins[channel].port, gpio_pins[channel].pin);
+		gpio.last_interrupt_value[channel] = value;
+		if(value) {
+			XMC_GPIO_SetOutputHigh(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+		} else {
+			XMC_GPIO_SetOutputLow(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+		}
+	}
 }
 
 void gpio_tick(void) {
-
+	// Enable interrupt again after debounce time
+	for(uint8_t channel = 0; channel < GPIO_CHANNEL_NUM; channel++) {
+		if(gpio.last_interrupt_time[channel] != 0) {
+			if(system_timer_is_time_elapsed_ms(gpio.last_interrupt_time[channel], gpio.debounce)) {
+				gpio.last_interrupt_time[channel] = 0;
+				NVIC_EnableIRQ(gpio_pins[channel].irq_n);
+			}
+		}
+	}
 }

@@ -513,6 +513,10 @@ BootloaderHandleMessageResponse get_input_voltage(const GetInputVoltage *data, G
 }
 
 BootloaderHandleMessageResponse set_gpio_configuration(const SetGPIOConfiguration *data) {
+	if(data->stop_deceleration > 0xFFFF) { // 16 bit
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
 	gpio.debounce          = data->debounce;
 	gpio.stop_deceleration = data->stop_deceleration;
 
@@ -550,7 +554,7 @@ BootloaderHandleMessageResponse get_gpio_action(const GetGPIOAction *data, GetGP
 
 BootloaderHandleMessageResponse get_gpio_state(const GetGPIOState *data, GetGPIOState_Response *response) {
 	response->header.length = sizeof(GetGPIOState_Response);
-	response->gpio_state[0] = (XMC_GPIO_GetInput(GPIO_0_PIN) << 0) | (XMC_GPIO_GetInput(GPIO_1_PIN) << 1);
+	response->gpio_state[0] = (gpio.last_interrupt_value[0] << 0) | (gpio.last_interrupt_value[1] << 1);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

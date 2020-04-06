@@ -30,6 +30,9 @@
 #include "bricklib2/os/coop_task.h"
 #include "bricklib2/logging/logging.h"
 
+#include "communication.h"
+#include "gpio.h"
+
 #define TMC5160_SPI_READ  (0 << 7)
 #define TMC5160_SPI_WRITE (1 << 7)
 
@@ -90,6 +93,24 @@ static void tmc5160_task_register_log(void) {
 	logd("\n\r");
 }
 
+static void tmc5160_task_handle_gpio(void) {
+	if(gpio.stop_emergency) {
+		gpio.stop_emergency = false;
+		gpio.stop_normal = false;
+
+		// TODO: Handle emergency stop
+	} else if(gpio.stop_normal) {
+		gpio.stop_normal = false;
+		tmc5160.registers.bits.rampmode.bit.rampmode = SILENT_STEPPER_V2_RAMPING_MODE_VELOCITY_POSITIVE;
+		tmc5160.registers.bits.vmax.bit.vmax = 0;
+		tmc5160.registers.bits.amax.bit.amax = gpio.stop_deceleration;
+
+		tmc5160_task_register_write(TMC5160_REG_RAMPMODE, tmc5160.registers.regs[TMC5160_REG_RAMPMODE]);
+		tmc5160_task_register_write(TMC5160_REG_VMAX, tmc5160.registers.regs[TMC5160_REG_VMAX]);
+		tmc5160_task_register_write(TMC5160_REG_AMAX, tmc5160.registers.regs[TMC5160_REG_AMAX]);
+	}
+}
+
 static void tmc5160_init_spi(void) {
 	tmc5160.spi_fifo.channel             = TMC5160_USIC_SPI;
 	tmc5160.spi_fifo.baudrate            = TMC5160_SPI_BAUDRATE;
@@ -137,6 +158,8 @@ void tmc5160_tick_task(void) {
 	}
 
 	while(true) {
+		tmc5160_task_handle_gpio();
+
 		// Write necessary registers
 		for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
 			if(tmc5160.registers_write[i]) {
@@ -155,9 +178,11 @@ void tmc5160_tick_task(void) {
 			}
 		}
 
+		// Read current position and velocity once per ms
 		if(system_timer_is_time_elapsed_ms(tmc5160.last_read_time, 1)) {
 			tmc5160.last_read_time = system_timer_get_ms();
 			tmc5160.registers_read[TMC5160_REG_XACTUAL] = true;
+			tmc5160.registers_read[TMC5160_REG_VACTUAL] = true;
 		}
 
 		coop_task_yield();
