@@ -126,13 +126,14 @@ void communication_init(void);
 #define FID_GET_MOTION_CONFIGURATION 2
 #define FID_SET_CURRENT_POSITION 3
 #define FID_GET_CURRENT_POSITION 4
-#define FID_SET_TARGET_POSITION 5
-#define FID_GET_TARGET_POSITION 6
-#define FID_SET_STEPS 7
-#define FID_GET_STEPS 8
-#define FID_GET_REMAINING_STEPS 9
-#define FID_SET_STEP_CONFIGURATION 10
-#define FID_GET_STEP_CONFIGURATION 11
+#define FID_GET_CURRENT_VELOCITY 5
+#define FID_SET_TARGET_POSITION 6
+#define FID_GET_TARGET_POSITION 7
+#define FID_SET_STEPS 8
+#define FID_GET_STEPS 9
+#define FID_GET_REMAINING_STEPS 10
+#define FID_SET_STEP_CONFIGURATION 11
+#define FID_GET_STEP_CONFIGURATION 12
 #define FID_SET_MOTOR_CURRENT 22
 #define FID_GET_MOTOR_CURRENT 23
 #define FID_SET_ENABLED 24
@@ -203,6 +204,15 @@ typedef struct {
 	TFPMessageHeader header;
 	int32_t position;
 } __attribute__((__packed__)) GetCurrentPosition_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetCurrentVelocity;
+
+typedef struct {
+	TFPMessageHeader header;
+	int32_t velocity;
+} __attribute__((__packed__)) GetCurrentVelocity_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -503,6 +513,7 @@ BootloaderHandleMessageResponse set_motion_configuration(const SetMotionConfigur
 BootloaderHandleMessageResponse get_motion_configuration(const GetMotionConfiguration *data, GetMotionConfiguration_Response *response);
 BootloaderHandleMessageResponse set_current_position(const SetCurrentPosition *data);
 BootloaderHandleMessageResponse get_current_position(const GetCurrentPosition *data, GetCurrentPosition_Response *response);
+BootloaderHandleMessageResponse get_current_velocity(const GetCurrentVelocity *data, GetCurrentVelocity_Response *response);
 BootloaderHandleMessageResponse set_target_position(const SetTargetPosition *data);
 BootloaderHandleMessageResponse get_target_position(const GetTargetPosition *data, GetTargetPosition_Response *response);
 BootloaderHandleMessageResponse set_steps(const SetSteps *data);

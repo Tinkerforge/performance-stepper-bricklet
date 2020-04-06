@@ -41,6 +41,7 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_MOTION_CONFIGURATION: return get_motion_configuration(message, response);
 		case FID_SET_CURRENT_POSITION: return set_current_position(message);
 		case FID_GET_CURRENT_POSITION: return get_current_position(message, response);
+		case FID_GET_CURRENT_VELOCITY: return get_current_velocity(message, response);
 		case FID_SET_TARGET_POSITION: return set_target_position(message);
 		case FID_GET_TARGET_POSITION: return get_target_position(message, response);
 		case FID_SET_STEPS: return set_steps(message);
@@ -193,6 +194,13 @@ BootloaderHandleMessageResponse set_current_position(const SetCurrentPosition *d
 BootloaderHandleMessageResponse get_current_position(const GetCurrentPosition *data, GetCurrentPosition_Response *response) {
 	response->header.length = sizeof(GetCurrentPosition_Response);
 	response->position      = (int32_t)tmc5160.registers.bits.xactual.bit.xactual;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse get_current_velocity(const GetCurrentVelocity *data, GetCurrentVelocity_Response *response) {
+	response->header.length = sizeof(GetCurrentVelocity_Response);
+	response->velocity      = (int32_t)tmc5160.registers.bits.vactual.bit.vactual;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
