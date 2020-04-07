@@ -27,7 +27,11 @@
 #define TMC5160_DIAGNOSIS0_PIN         P0_1
 #define TMC5160_DIAGNOSIS1_PIN         P0_2
 
-#define TMC5160_SPI_BAUDRATE           400000
+#define TMC5160_ENABLE_LED_PIN         P1_3
+#define TMC5160_STEPS_LED_PIN          P1_4
+#define TMC5160_ERROR_LED_PIN          P1_2
+
+#define TMC5160_SPI_BAUDRATE           2000000
 #define TMC5160_USIC_CHANNEL           USIC0_CH1
 #define TMC5160_USIC_SPI               XMC_SPI0_CH1
 

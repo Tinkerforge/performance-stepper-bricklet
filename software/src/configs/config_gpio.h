@@ -26,6 +26,7 @@
 #include "xmc_eru.h"
 
 #define GPIO_0_PIN          P2_6
+#define GPIO_0_LED_PIN      P1_5
 #define GPIO_0_ERU          XMC_ERU0
 #define GPIO_0_ETL_CHANNEL  2
 #define GPIO_0_OGU_CHANNEL  2
@@ -38,6 +39,7 @@
 #define GPIO_0_IRQ_CTRL     0
 
 #define GPIO_1_PIN          P2_9
+#define GPIO_1_LED_PIN      P1_6
 #define GPIO_1_ERU          XMC_ERU0
 #define GPIO_1_ETL_CHANNEL  3
 #define GPIO_1_OGU_CHANNEL  3

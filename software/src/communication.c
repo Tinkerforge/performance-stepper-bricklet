@@ -70,6 +70,14 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_SET_GPIO_ACTION: return set_gpio_action(message);
 		case FID_GET_GPIO_ACTION: return get_gpio_action(message, response);
 		case FID_GET_GPIO_STATE: return get_gpio_state(message, response);
+		case FID_SET_ERROR_LED_CONFIG: return set_error_led_config(message);
+		case FID_GET_ERROR_LED_CONFIG: return get_error_led_config(message, response);
+		case FID_SET_ENABLE_LED_CONFIG: return set_enable_led_config(message);
+		case FID_GET_ENABLE_LED_CONFIG: return get_enable_led_config(message, response);
+		case FID_SET_STEPS_LED_CONFIG: return set_steps_led_config(message);
+		case FID_GET_STEPS_LED_CONFIG: return get_steps_led_config(message, response);
+		case FID_SET_GPIO_LED_CONFIG: return set_gpio_led_config(message);
+		case FID_GET_GPIO_LED_CONFIG: return get_gpio_led_config(message, response);
 		case FID_WRITE_REGISTER: return write_register(message, response);
 		case FID_READ_REGISTER: return read_register(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
@@ -282,6 +290,14 @@ BootloaderHandleMessageResponse set_enabled(const SetEnabled *data) {
 		XMC_GPIO_SetOutputLow(TMC5160_ENABLE_PIN);
 	} else {
 		XMC_GPIO_SetOutputHigh(TMC5160_ENABLE_PIN);
+	}
+
+	if(tmc5160.enable_led_flicker_state.config == SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE) {
+		if(data->enabled) {
+			XMC_GPIO_SetOutputLow(TMC5160_ENABLE_LED_PIN);
+		} else {
+			XMC_GPIO_SetOutputHigh(TMC5160_ENABLE_LED_PIN);
+		}
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
@@ -555,6 +571,181 @@ BootloaderHandleMessageResponse get_gpio_action(const GetGPIOAction *data, GetGP
 BootloaderHandleMessageResponse get_gpio_state(const GetGPIOState *data, GetGPIOState_Response *response) {
 	response->header.length = sizeof(GetGPIOState_Response);
 	response->gpio_state[0] = (gpio.last_interrupt_value[0] << 0) | (gpio.last_interrupt_value[1] << 1);
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_error_led_config(const SetErrorLEDConfig *data) {
+	if(data->config > SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	tmc5160.error_led_flicker_state.config = data->config;
+	switch(data->config) {
+		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_OFF:
+			XMC_GPIO_SetOutputHigh(TMC5160_ERROR_LED_PIN);
+			break;
+
+		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_ON:
+			XMC_GPIO_SetOutputLow(TMC5160_ERROR_LED_PIN);
+			break;
+
+		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR:
+			// TODO
+			break;
+
+		default: break;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_error_led_config(const GetErrorLEDConfig *data, GetErrorLEDConfig_Response *response) {
+	response->header.length = sizeof(GetErrorLEDConfig_Response);
+	response->config        = tmc5160.error_led_flicker_state.config;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_enable_led_config(const SetEnableLEDConfig *data) {
+	if(data->config > SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	tmc5160.enable_led_flicker_state.config = data->config;
+	switch(data->config) {
+		case SILENT_STEPPER_V2_ENABLE_LED_CONFIG_OFF:
+			XMC_GPIO_SetOutputHigh(TMC5160_ENABLE_LED_PIN);
+			break;
+
+		case SILENT_STEPPER_V2_ENABLE_LED_CONFIG_ON:
+			XMC_GPIO_SetOutputLow(TMC5160_ENABLE_LED_PIN);
+			break;
+
+		case SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE:
+			if(XMC_GPIO_GetInput(TMC5160_ENABLE_PIN)) {
+				XMC_GPIO_SetOutputHigh(TMC5160_ENABLE_LED_PIN);
+			} else {
+				XMC_GPIO_SetOutputLow(TMC5160_ENABLE_LED_PIN);
+			}
+			break;
+
+		default: break;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_enable_led_config(const GetEnableLEDConfig *data, GetEnableLEDConfig_Response *response) {
+	response->header.length = sizeof(GetEnableLEDConfig_Response);
+	response->config        = tmc5160.enable_led_flicker_state.config;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_steps_led_config(const SetStepsLEDConfig *data) {
+	if(data->config > SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	tmc5160.steps_led_flicker_state.config = data->config;
+	switch(data->config) {
+		case SILENT_STEPPER_V2_STEPS_LED_CONFIG_OFF:
+			XMC_GPIO_SetOutputHigh(TMC5160_STEPS_LED_PIN);
+			break;
+
+		case SILENT_STEPPER_V2_STEPS_LED_CONFIG_ON:
+			XMC_GPIO_SetOutputLow(TMC5160_STEPS_LED_PIN);
+			break;
+
+		case SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS:
+			XMC_GPIO_SetOutputHigh(TMC5160_STEPS_LED_PIN);
+			break;
+
+		default: break;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_steps_led_config(const GetStepsLEDConfig *data, GetStepsLEDConfig_Response *response) {
+	response->header.length = sizeof(GetStepsLEDConfig_Response);
+	response->config        = tmc5160.steps_led_flicker_state.config;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_gpio_led_config(const SetGPIOLEDConfig *data) {
+	if(data->config > SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if(data->channel > GPIO_CHANNEL_NUM) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	gpio.gpio_led_flicker_state[data->channel].config = data->config;
+	switch(data->config) {
+		case SILENT_STEPPER_V2_GPIO_LED_CONFIG_OFF:
+			if(data->channel == 0) {
+				XMC_GPIO_SetOutputHigh(GPIO_0_LED_PIN);
+			} else {
+				XMC_GPIO_SetOutputHigh(GPIO_1_LED_PIN);
+			}
+			break;
+
+		case SILENT_STEPPER_V2_GPIO_LED_CONFIG_ON:
+			if(data->channel == 0) {
+				XMC_GPIO_SetOutputLow(GPIO_0_LED_PIN);
+			} else {
+				XMC_GPIO_SetOutputLow(GPIO_1_LED_PIN);
+			}
+			break;
+
+		case SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_HIGH:
+			if(data->channel == 0) {
+				if(gpio.last_interrupt_value[0])	{
+					XMC_GPIO_SetOutputLow(GPIO_0_LED_PIN);
+				} else {
+					XMC_GPIO_SetOutputHigh(GPIO_0_LED_PIN);
+				}
+			} else {
+				if(gpio.last_interrupt_value[1])	{
+					XMC_GPIO_SetOutputLow(GPIO_1_LED_PIN);
+				} else {
+					XMC_GPIO_SetOutputHigh(GPIO_1_LED_PIN);
+				}
+			}
+			break;
+
+		case SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW:
+			if(data->channel == 0) {
+				if(gpio.last_interrupt_value[0])	{
+					XMC_GPIO_SetOutputHigh(GPIO_0_LED_PIN);
+				} else {
+					XMC_GPIO_SetOutputLow(GPIO_0_LED_PIN);
+				}
+			} else {
+				if(gpio.last_interrupt_value[1])	{
+					XMC_GPIO_SetOutputHigh(GPIO_1_LED_PIN);
+				} else {
+					XMC_GPIO_SetOutputLow(GPIO_1_LED_PIN);
+				}
+			}
+			break;
+		default: break;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_gpio_led_config(const GetGPIOLEDConfig *data, GetGPIOLEDConfig_Response *response) {
+	if(data->channel > GPIO_CHANNEL_NUM) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	response->header.length = sizeof(GetGPIOLEDConfig_Response);
+	response->config        = gpio.gpio_led_flicker_state[data->channel].config;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

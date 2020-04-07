@@ -26,6 +26,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "bricklib2/utility/led_flicker.h"
+
 #define GPIO_CHANNEL_NUM 2
 
 typedef struct {
@@ -38,6 +40,8 @@ typedef struct {
 
 	bool stop_normal;
 	bool stop_emergency;
+
+	LEDFlickerState gpio_led_flicker_state[GPIO_CHANNEL_NUM];
 } GPIO;
 
 extern GPIO gpio;

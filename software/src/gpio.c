@@ -44,8 +44,8 @@ static const GPIOPins gpio_pins[GPIO_CHANNEL_NUM] = {
 };
 
 static const GPIOPins gpio_led_pins[GPIO_CHANNEL_NUM] = {
-	{P1_5, 0},
-	{P1_6, 0}
+	{GPIO_0_LED_PIN, 0},
+	{GPIO_1_LED_PIN, 0}
 };
 
 GPIO gpio;
@@ -81,10 +81,18 @@ static inline void __attribute__((optimize("-O3"))) __attribute__ ((section (".r
 	}
 
 	// Set LED
-	if(value) {
-		XMC_GPIO_SetOutputHigh(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
-	} else {
-		XMC_GPIO_SetOutputLow(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+	if(gpio.gpio_led_flicker_state[channel].config == SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_HIGH) {
+		if(value) {
+			XMC_GPIO_SetOutputLow(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+		} else {
+			XMC_GPIO_SetOutputHigh(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+		}
+	} else if(gpio.gpio_led_flicker_state[channel].config == SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW) {
+		if(value) {
+			XMC_GPIO_SetOutputHigh(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+		} else {
+			XMC_GPIO_SetOutputLow(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
+		}
 	}
 }
 
@@ -103,10 +111,12 @@ bool gpio_is_motion_disabled(void) {
 void gpio_init(void) {
     memset(&gpio, 0, sizeof(GPIO));
 
-	gpio.action[0]         = SILENT_STEPPER_V2_GPIO_ACTION_NONE;
-	gpio.action[1]         = SILENT_STEPPER_V2_GPIO_ACTION_NONE;
-	gpio.debounce          = 200; // 200ms default
-	gpio.stop_deceleration = 0xFFFF;
+	gpio.action[0]                        = SILENT_STEPPER_V2_GPIO_ACTION_NONE;
+	gpio.action[1]                        = SILENT_STEPPER_V2_GPIO_ACTION_NONE;
+	gpio.debounce                         = 200; // 200ms default
+	gpio.stop_deceleration                = 0xFFFF;
+	gpio.gpio_led_flicker_state[0].config = SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW;
+	gpio.gpio_led_flicker_state[1].config = SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW;
 
 
 	// Init GPIO IRQs

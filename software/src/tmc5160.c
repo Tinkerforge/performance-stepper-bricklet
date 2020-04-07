@@ -25,13 +25,16 @@
 #include <stdint.h>
 
 #include "configs/config_tmc5160.h"
+#include "configs/config_gpio.h"
 
 #include "bricklib2/hal/system_timer/system_timer.h"
+#include "bricklib2/utility/util_definitions.h"
 #include "bricklib2/os/coop_task.h"
 #include "bricklib2/logging/logging.h"
 
 #include "communication.h"
 #include "gpio.h"
+#include "voltage.h"
 
 #define TMC5160_SPI_READ  (0 << 7)
 #define TMC5160_SPI_WRITE (1 << 7)
@@ -111,6 +114,80 @@ static void tmc5160_task_handle_gpio(void) {
 	}
 }
 
+static void tmc5160_task_handle_error_led(const uint32_t t) {
+	static uint32_t last_time = 0;
+
+	uint8_t error = 0;
+	if(voltage.value < 9000) {
+		error = 500;
+	}
+
+	if(tmc5160.registers.bits.drv_status.bit.otpw) {
+		error = 125;
+	}
+
+	if(tmc5160.registers.bits.drv_status.bit.s2gb || tmc5160.registers.bits.drv_status.bit.s2ga || tmc5160.registers.bits.drv_status.bit.ot) {
+		error = 1;
+	}
+
+	if(error == 0) {
+		XMC_GPIO_SetOutputHigh(TMC5160_ERROR_LED_PIN);
+	} else if (error == 1) {
+		XMC_GPIO_SetOutputHigh(TMC5160_ERROR_LED_PIN);
+	} else {
+		if(system_timer_is_time_elapsed_ms(last_time, error)) {
+			XMC_GPIO_ToggleOutput(TMC5160_ERROR_LED_PIN);
+			last_time = system_timer_get_ms();
+		}
+	}
+}
+
+static void tmc5160_task_handle_steps_led(const uint32_t t) {
+	static uint32_t last_ontime = 0;
+	static uint32_t last_time = 0;
+	static int32_t last_xactual = 0;
+
+	if(system_timer_is_time_elapsed_ms(last_ontime, 5)) {
+		XMC_GPIO_SetOutputHigh(TMC5160_STEPS_LED_PIN);	
+	}
+
+	if(system_timer_is_time_elapsed_ms(last_time, 50)) {
+		last_time = t;
+		if(ABS(tmc5160.registers.bits.xactual.bit.xactual - last_xactual) > 256) {
+			last_xactual = tmc5160.registers.bits.xactual.bit.xactual;
+			XMC_GPIO_SetOutputLow(TMC5160_STEPS_LED_PIN);
+			last_ontime = system_timer_get_ms();
+		}
+	}
+}
+
+static void tmc5160_task_handle_leds(void) {
+	uint32_t t = system_timer_get_ms();
+	if(tmc5160.error_led_flicker_state.config == LED_FLICKER_CONFIG_HEARTBEAT) {
+		led_flicker_tick(&tmc5160.error_led_flicker_state, t, TMC5160_ERROR_LED_PIN);
+	} else if(tmc5160.error_led_flicker_state.config == SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR) {
+		tmc5160_task_handle_error_led(t);
+	}
+
+	if(tmc5160.enable_led_flicker_state.config == LED_FLICKER_CONFIG_HEARTBEAT) {
+		led_flicker_tick(&tmc5160.enable_led_flicker_state, t, TMC5160_ENABLE_LED_PIN);
+	}
+
+	if(tmc5160.steps_led_flicker_state.config == LED_FLICKER_CONFIG_HEARTBEAT) {
+		led_flicker_tick(&tmc5160.steps_led_flicker_state, t, TMC5160_STEPS_LED_PIN);
+	} else if(tmc5160.steps_led_flicker_state.config == SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS) {
+		tmc5160_task_handle_steps_led(t);
+	}
+
+	if(gpio.gpio_led_flicker_state[0].config == LED_FLICKER_CONFIG_HEARTBEAT) {
+		led_flicker_tick(&gpio.gpio_led_flicker_state[0], t, GPIO_0_LED_PIN);
+	}
+
+	if(gpio.gpio_led_flicker_state[1].config == LED_FLICKER_CONFIG_HEARTBEAT) {
+		led_flicker_tick(&gpio.gpio_led_flicker_state[1], t, GPIO_1_LED_PIN);
+	}
+}
+
 static void tmc5160_init_spi(void) {
 	tmc5160.spi_fifo.channel             = TMC5160_USIC_SPI;
 	tmc5160.spi_fifo.baudrate            = TMC5160_SPI_BAUDRATE;
@@ -159,6 +236,7 @@ void tmc5160_tick_task(void) {
 
 	while(true) {
 		tmc5160_task_handle_gpio();
+		tmc5160_task_handle_leds();
 
 		// Write necessary registers
 		for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
@@ -181,8 +259,9 @@ void tmc5160_tick_task(void) {
 		// Read current position and velocity once per ms
 		if(system_timer_is_time_elapsed_ms(tmc5160.last_read_time, 1)) {
 			tmc5160.last_read_time = system_timer_get_ms();
-			tmc5160.registers_read[TMC5160_REG_XACTUAL] = true;
-			tmc5160.registers_read[TMC5160_REG_VACTUAL] = true;
+			tmc5160.registers_read[TMC5160_REG_XACTUAL]    = true;
+			tmc5160.registers_read[TMC5160_REG_VACTUAL]    = true;
+			tmc5160.registers_read[TMC5160_REG_DRV_STATUS] = true;
 		}
 
 		coop_task_yield();
@@ -191,6 +270,17 @@ void tmc5160_tick_task(void) {
 
 void tmc5160_init(void) {
 	memset(&tmc5160, 0, sizeof(TMC5160));
+
+	const XMC_GPIO_CONFIG_t led_config = {
+		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
+		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
+	};
+	XMC_GPIO_Init(TMC5160_ENABLE_LED_PIN, &led_config);
+	XMC_GPIO_Init(TMC5160_STEPS_LED_PIN,  &led_config);
+	XMC_GPIO_Init(TMC5160_ERROR_LED_PIN,  &led_config);
+	tmc5160.enable_led_flicker_state.config = SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE;
+	tmc5160.steps_led_flicker_state.config  = SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS;
+	tmc5160.error_led_flicker_state.config  = SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR;
 
 	coop_task_init(&tmc5160_task, tmc5160_tick_task);
 

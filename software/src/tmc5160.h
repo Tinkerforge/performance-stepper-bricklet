@@ -24,6 +24,7 @@
 
 #include "configs/config.h"
 #include "bricklib2/hal/spi_fifo/spi_fifo.h"
+#include "bricklib2/utility/led_flicker.h"
 
 #define TMC5160_NUM_REGISTERS 116
 
@@ -731,6 +732,10 @@ typedef struct {
 	uint8_t last_status;
 
 	uint32_t last_read_time;
+
+	LEDFlickerState error_led_flicker_state;
+	LEDFlickerState enable_led_flicker_state;
+	LEDFlickerState steps_led_flicker_state;
 } TMC5160;
 
 uint32_t tmc5160_task_register_read(const uint8_t reg);

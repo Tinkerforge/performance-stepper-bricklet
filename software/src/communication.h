@@ -103,6 +103,27 @@ void communication_init(void);
 #define SILENT_STEPPER_V2_GPIO_ACTION_CALLBACK_RISING_EDGE 16
 #define SILENT_STEPPER_V2_GPIO_ACTION_CALLBACK_FALLING_EDGE 32
 
+#define SILENT_STEPPER_V2_ERROR_LED_CONFIG_OFF 0
+#define SILENT_STEPPER_V2_ERROR_LED_CONFIG_ON 1
+#define SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_HEARTBEAT 2
+#define SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR 3
+
+#define SILENT_STEPPER_V2_ENABLE_LED_CONFIG_OFF 0
+#define SILENT_STEPPER_V2_ENABLE_LED_CONFIG_ON 1
+#define SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_HEARTBEAT 2
+#define SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE 3
+
+#define SILENT_STEPPER_V2_STEPS_LED_CONFIG_OFF 0
+#define SILENT_STEPPER_V2_STEPS_LED_CONFIG_ON 1
+#define SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_HEARTBEAT 2
+#define SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS 3
+
+#define SILENT_STEPPER_V2_GPIO_LED_CONFIG_OFF 0
+#define SILENT_STEPPER_V2_GPIO_LED_CONFIG_ON 1
+#define SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_HEARTBEAT 2
+#define SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_HIGH 3
+#define SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW 4
+
 #define SILENT_STEPPER_V2_BOOTLOADER_MODE_BOOTLOADER 0
 #define SILENT_STEPPER_V2_BOOTLOADER_MODE_FIRMWARE 1
 #define SILENT_STEPPER_V2_BOOTLOADER_MODE_BOOTLOADER_WAIT_FOR_REBOOT 2
@@ -155,8 +176,16 @@ void communication_init(void);
 #define FID_SET_GPIO_ACTION 40
 #define FID_GET_GPIO_ACTION 41
 #define FID_GET_GPIO_STATE 42
-#define FID_WRITE_REGISTER 43
-#define FID_READ_REGISTER 44
+#define FID_SET_ERROR_LED_CONFIG 43
+#define FID_GET_ERROR_LED_CONFIG 44
+#define FID_SET_ENABLE_LED_CONFIG 45
+#define FID_GET_ENABLE_LED_CONFIG 46
+#define FID_SET_STEPS_LED_CONFIG 47
+#define FID_GET_STEPS_LED_CONFIG 48
+#define FID_SET_GPIO_LED_CONFIG 49
+#define FID_GET_GPIO_LED_CONFIG 50
+#define FID_WRITE_REGISTER 51
+#define FID_READ_REGISTER 52
 
 
 typedef struct {
@@ -487,6 +516,64 @@ typedef struct {
 
 typedef struct {
 	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) SetErrorLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetErrorLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) GetErrorLEDConfig_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) SetEnableLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetEnableLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) GetEnableLEDConfig_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) SetStepsLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetStepsLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) GetStepsLEDConfig_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t channel;
+	uint8_t config;
+} __attribute__((__packed__)) SetGPIOLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t channel;
+} __attribute__((__packed__)) GetGPIOLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) GetGPIOLEDConfig_Response;
+
+typedef struct {
+	TFPMessageHeader header;
 	uint8_t reg;
 	uint32_t value;
 } __attribute__((__packed__)) WriteRegister;
@@ -542,6 +629,14 @@ BootloaderHandleMessageResponse get_gpio_configuration(const GetGPIOConfiguratio
 BootloaderHandleMessageResponse set_gpio_action(const SetGPIOAction *data);
 BootloaderHandleMessageResponse get_gpio_action(const GetGPIOAction *data, GetGPIOAction_Response *response);
 BootloaderHandleMessageResponse get_gpio_state(const GetGPIOState *data, GetGPIOState_Response *response);
+BootloaderHandleMessageResponse set_error_led_config(const SetErrorLEDConfig *data);
+BootloaderHandleMessageResponse get_error_led_config(const GetErrorLEDConfig *data, GetErrorLEDConfig_Response *response);
+BootloaderHandleMessageResponse set_enable_led_config(const SetEnableLEDConfig *data);
+BootloaderHandleMessageResponse get_enable_led_config(const GetEnableLEDConfig *data, GetEnableLEDConfig_Response *response);
+BootloaderHandleMessageResponse set_steps_led_config(const SetStepsLEDConfig *data);
+BootloaderHandleMessageResponse get_steps_led_config(const GetStepsLEDConfig *data, GetStepsLEDConfig_Response *response);
+BootloaderHandleMessageResponse set_gpio_led_config(const SetGPIOLEDConfig *data);
+BootloaderHandleMessageResponse get_gpio_led_config(const GetGPIOLEDConfig *data, GetGPIOLEDConfig_Response *response);
 BootloaderHandleMessageResponse write_register(const WriteRegister *data, WriteRegister_Response *response);
 BootloaderHandleMessageResponse read_register(const ReadRegister *data, ReadRegister_Response *response);
 
