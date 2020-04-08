@@ -51,20 +51,6 @@ F 3 "" H 10800 3600 60  0000 C CNN
 $EndComp
 $Comp
 L tinkerforge:MOSFET_N_CH Q?
-U 1 1 5E2B8D65
-P 7650 2000
-AR Path="/5E2B8D65" Ref="Q?"  Part="1" 
-AR Path="/5E2859D2/5E2B8D65" Ref="Q?"  Part="1" 
-AR Path="/5E2C943B/5E2B8D65" Ref="Q5"  Part="1" 
-F 0 "Q5" H 7841 2046 50  0000 L CNN
-F 1 "CSD19533Q5A" H 7350 1850 31  0000 L CNN
-F 2 "kicad-libraries:SON_5x6mm" H 7850 2100 50  0001 C CNN
-F 3 "" H 7650 2000 50  0000 C CNN
-	1    7650 2000
-	1    0    0    -1  
-$EndComp
-$Comp
-L tinkerforge:MOSFET_N_CH Q?
 U 1 1 5E2BDFF1
 P 6550 2800
 AR Path="/5E2BDFF1" Ref="Q?"  Part="1" 
@@ -1347,7 +1333,7 @@ L tinkerforge:TVS D8
 U 1 1 5E3A0CEA
 P 10050 1150
 F 0 "D8" V 9950 1000 31  0000 L CNN
-F 1 "SMBJ24CA" V 9700 1000 31  0000 L CNN
+F 1 "SMBJ48CA" V 9700 1000 31  0000 L CNN
 F 2 "kicad-libraries:SMB" H 10050 1150 60  0001 C CNN
 F 3 "" H 10050 1150 60  0000 C CNN
 	1    10050 1150
@@ -1355,8 +1341,6 @@ F 3 "" H 10050 1150 60  0000 C CNN
 $EndComp
 Wire Wire Line
 	10600 1400 10600 1100
-Wire Wire Line
-	10600 900  10300 900 
 Connection ~ 9250 900 
 Wire Wire Line
 	9250 900  10050 900 
@@ -1366,27 +1350,43 @@ Connection ~ 10050 900
 Connection ~ 10050 1400
 Wire Wire Line
 	10050 1400 9950 1400
-$Comp
-L tinkerforge:PTC PTC1
-U 1 1 5E47E9B1
-P 10300 1150
-F 0 "PTC1" H 10200 1050 31  0000 R CNN
-F 1 "VC080526C580DP" H 10400 800 31  0000 R CNN
-F 2 "kicad-libraries:R0805E" H 10300 1150 60  0001 C CNN
-F 3 "" H 10300 1150 60  0000 C CNN
-	1    10300 1150
-	-1   0    0    1   
-$EndComp
-Connection ~ 10300 1400
-Wire Wire Line
-	10300 1400 10600 1400
-Connection ~ 10300 900 
-Wire Wire Line
-	10050 1400 10300 1400
-Wire Wire Line
-	10050 900  10300 900 
 Wire Wire Line
 	7950 900  8350 900 
 Wire Wire Line
 	8650 900  9250 900 
+$Comp
+L tinkerforge:MOSFET_N_CH Q?
+U 1 1 5E2B8D65
+P 7650 2000
+AR Path="/5E2B8D65" Ref="Q?"  Part="1" 
+AR Path="/5E2859D2/5E2B8D65" Ref="Q?"  Part="1" 
+AR Path="/5E2C943B/5E2B8D65" Ref="Q5"  Part="1" 
+F 0 "Q5" H 7841 2046 50  0000 L CNN
+F 1 "CSD19533Q5A" H 7350 1850 31  0000 L CNN
+F 2 "kicad-libraries:SON_5x6mm" H 7850 2100 50  0001 C CNN
+F 3 "" H 7650 2000 50  0000 C CNN
+	1    7650 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:Varistor R29
+U 1 1 5E903704
+P 10300 1150
+F 0 "R29" H 10400 1250 31  0000 L CNN
+F 1 "VG121048H101DP" H 10200 1500 31  0000 L CNN
+F 2 "kicad-libraries:1210" H 10300 1150 60  0001 C CNN
+F 3 "" H 10300 1150 60  0000 C CNN
+	1    10300 1150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10050 1400 10300 1400
+Wire Wire Line
+	10050 900  10300 900 
+Connection ~ 10300 900 
+Wire Wire Line
+	10300 900  10600 900 
+Connection ~ 10300 1400
+Wire Wire Line
+	10300 1400 10600 1400
 $EndSCHEMATC
