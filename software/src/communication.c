@@ -286,23 +286,25 @@ BootloaderHandleMessageResponse get_enabled(const GetEnabled *data, GetEnabled_R
 }
 
 BootloaderHandleMessageResponse set_basic_configuration(const SetBasicConfiguration *data) {
-	if(data->standstill_delay_time > 15) { // TODO: Scale to ms?
+	if(data->standstill_delay_time > 327) { // 0-327ms -> 0-15
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	if(data->power_down_time > 255) { // TODO Scale to ms?
+	if(data->power_down_time > 5570) { // 0-5570ms -> 0-255
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	tmc5160.high_level_standstill_current = MIN(data->standstill_current, tmc5160.high_level_current);
-	tmc5160.high_level_motor_run_current  = MIN(data->motor_run_current,  tmc5160.high_level_current);
+	tmc5160.high_level_standstill_current             = MIN(data->standstill_current, tmc5160.high_level_current);
+	tmc5160.high_level_motor_run_current              = MIN(data->motor_run_current,  tmc5160.high_level_current);
+	tmc5160.high_level_standstill_delay_time          = data->standstill_delay_time;
+	tmc5160.high_level_power_down_time                = data->power_down_time;
 
 	tmc5160.registers.bits.ihold_irun.bit.ihold       = BETWEEN(0, SCALE(data->standstill_current, 0, tmc5160.high_level_current, 0, 31), 31);
 	tmc5160.registers.bits.ihold_irun.bit.irun        = BETWEEN(0, SCALE(data->motor_run_current,  0, tmc5160.high_level_current, 0, 31), 31);
-	tmc5160.registers.bits.ihold_irun.bit.ihold_delay = data->standstill_delay_time;
+	tmc5160.registers.bits.ihold_irun.bit.ihold_delay = SCALE(data->standstill_delay_time, 0, 327, 0, 15);
 	tmc5160.registers_write[TMC5160_REG_IHOLD_IRUN]   = true;
 
-	tmc5160.registers.bits.tpowerdown.bit.tpowerdown  = data->power_down_time;
+	tmc5160.registers.bits.tpowerdown.bit.tpowerdown  = SCALE(data->power_down_time, 0, 5570, 0, 255);
 	tmc5160.registers_write[TMC5160_REG_TPOWERDOWN]   = true;
 
 	tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs      = data->stealth_threshold;
@@ -324,8 +326,8 @@ BootloaderHandleMessageResponse get_basic_configuration(const GetBasicConfigurat
 	response->header.length              = sizeof(GetBasicConfiguration_Response);
 	response->standstill_current         = tmc5160.high_level_standstill_current;
 	response->motor_run_current          = tmc5160.high_level_motor_run_current;
-	response->standstill_delay_time      = tmc5160.registers.bits.ihold_irun.bit.ihold_delay;
-	response->power_down_time            = tmc5160.registers.bits.tpowerdown.bit.tpowerdown;
+	response->standstill_delay_time      = tmc5160.high_level_standstill_delay_time;
+	response->power_down_time            = tmc5160.high_level_power_down_time;
 	response->stealth_threshold          = tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs;
 	response->coolstep_threshold         = tmc5160.registers.bits.tcoolthrs.bit.tcoolthrs;
 	response->classic_threshold          = tmc5160.registers.bits.thigh.bit.thigh;
