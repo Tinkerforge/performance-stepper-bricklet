@@ -280,7 +280,7 @@ BootloaderHandleMessageResponse set_enabled(const SetEnabled *data) {
 
 BootloaderHandleMessageResponse get_enabled(const GetEnabled *data, GetEnabled_Response *response) {
 	response->header.length = sizeof(GetEnabled_Response);
-	response->enabled       = XMC_GPIO_GetInput(TMC5160_ENABLE_PIN);
+	response->enabled       = !XMC_GPIO_GetInput(TMC5160_ENABLE_PIN);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
