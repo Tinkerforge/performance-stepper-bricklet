@@ -89,37 +89,31 @@ BootloaderHandleMessageResponse set_motion_configuration(const SetMotionConfigur
 	if(data->ramping_mode > SILENT_STEPPER_V2_RAMPING_MODE_HOLD) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->velocity_start > 0x1FFFF) { // 18 bit
+	if((data->velocity_start < 0)   || (data->velocity_start > 0x1FFFF)) { // 18 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->acceleration_1 > 0xFFFF) { // 16 bit
+	if((data->acceleration_1 < 0)   || (data->acceleration_1 > 0xFFFF)) { // 16 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->velocity_1 > 0xFFFFF) { //20 bit
+	if((data->velocity_1 < 0)       || (data->velocity_1 > 0xFFFFF)) { //20 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->acceleration_max > 0xFFFF) { // 16 bit
+	if((data->acceleration_max < 0) || (data->acceleration_max > 0xFFFF)) { // 16 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->velocity_max > (0x7fffff - 511)) { // 23 bit - 512
+	if((data->velocity_max < 0)     || (data->velocity_max > (0x7fffff - 511))) { // 23 bit - 512
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->deceleration_max > 0xFFFF) { // 16 bit
+	if((data->deceleration_max < 0) || (data->deceleration_max > 0xFFFF)) { // 16 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->deceleration_1 > 0xFFFF) { // 16 bit
+	if((data->deceleration_1 < 1)   || (data->deceleration_1 > 0xFFFF)) { // 16 bit, 0 not allowed
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->deceleration_1 == 0) { // 0 not allowed
-		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
-	}	
-	if(data->velocity_stop > 0x1FFFF) { // 18 bit
+	if((data->velocity_stop < 1)    || (data->velocity_stop > 0x1FFFF)) { // 18 bit, 0 not allowed
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->velocity_stop == 0) { // 0 not allowed
-		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
-	}	
-	if(data->ramp_zero_wait > 0xFFFF) { // 16 bit
+	if((data->ramp_zero_wait < 0)   || (data->ramp_zero_wait > 2796)) { // 0-2796ms -> 16 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -150,44 +144,25 @@ BootloaderHandleMessageResponse set_motion_configuration(const SetMotionConfigur
 	tmc5160.registers.bits.vstop.bit.vstop         = data->velocity_stop;
 	tmc5160.registers_write[TMC5160_REG_VSTOP]     = true;
 
-	tmc5160.registers.bits.tzerowait.bit.tzerowait = data->ramp_zero_wait;
+	tmc5160.high_level_ramp_zero_wait              = data->ramp_zero_wait;
+	tmc5160.registers.bits.tzerowait.bit.tzerowait = SCALE(data->ramp_zero_wait, 0, 2796, 0, 0xFFFF);
 	tmc5160.registers_write[TMC5160_REG_TZEROWAIT] = true;
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
 BootloaderHandleMessageResponse get_motion_configuration(const GetMotionConfiguration *data, GetMotionConfiguration_Response *response) {
-	response->header.length                        = sizeof(GetMotionConfiguration_Response);
-
-	response->ramping_mode                         = tmc5160.registers.bits.rampmode.bit.rampmode;
-	tmc5160.registers_write[TMC5160_REG_RAMPMODE]  = true;
-
-	response->velocity_start                       = tmc5160.registers.bits.vstart.bit.vstart;
-	tmc5160.registers_write[TMC5160_REG_VSTART]    = true;
-
-	response->acceleration_1                       = tmc5160.registers.bits.a1.bit.a1;
-	tmc5160.registers_write[TMC5160_REG_A1]        = true;
-
-	response->velocity_1                           = tmc5160.registers.bits.v1.bit.v1;
-	tmc5160.registers_write[TMC5160_REG_V1]        = true;
-
-	response->acceleration_max                     = tmc5160.registers.bits.amax.bit.amax;
-	tmc5160.registers_write[TMC5160_REG_AMAX]      = true;
-
-	response->velocity_max                         = tmc5160.registers.bits.vmax.bit.vmax;
-	tmc5160.registers_write[TMC5160_REG_VMAX]      = true;
-
-	response->deceleration_max                     = tmc5160.registers.bits.dmax.bit.dmax;
-	tmc5160.registers_write[TMC5160_REG_DMAX]      = true;
-
-	response->deceleration_1                       = tmc5160.registers.bits.d1.bit.d1;
-	tmc5160.registers_write[TMC5160_REG_D1]        = true;
-
-	response->velocity_stop                        = tmc5160.registers.bits.vstop.bit.vstop;
-	tmc5160.registers_write[TMC5160_REG_VSTOP]     = true;
-
-	response->ramp_zero_wait                       = tmc5160.registers.bits.tzerowait.bit.tzerowait;
-	tmc5160.registers_write[TMC5160_REG_TZEROWAIT] = true;
+	response->header.length    = sizeof(GetMotionConfiguration_Response);
+	response->ramping_mode     = tmc5160.registers.bits.rampmode.bit.rampmode;
+	response->velocity_start   = tmc5160.registers.bits.vstart.bit.vstart;
+	response->acceleration_1   = tmc5160.registers.bits.a1.bit.a1;
+	response->velocity_1       = tmc5160.registers.bits.v1.bit.v1;
+	response->acceleration_max = tmc5160.registers.bits.amax.bit.amax;
+	response->velocity_max     = tmc5160.registers.bits.vmax.bit.vmax;
+	response->deceleration_max = tmc5160.registers.bits.dmax.bit.dmax;
+	response->deceleration_1   = tmc5160.registers.bits.d1.bit.d1;
+	response->velocity_stop    = tmc5160.registers.bits.vstop.bit.vstop;
+	response->ramp_zero_wait   = tmc5160.high_level_ramp_zero_wait;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
