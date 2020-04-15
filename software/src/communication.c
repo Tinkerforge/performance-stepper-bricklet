@@ -349,7 +349,7 @@ BootloaderHandleMessageResponse set_spreadcycle_configuration(const SetSpreadcyc
 
 
 	tmc5160.registers.bits.chopconf.bit.toff      = data->slow_decay_duration;
-	tmc5160.registers.bits.chopconf.bit.rndtf     = data->enable_random_slow_decay;
+//	tmc5160.registers.bits.chopconf.bit.rndtf     = data->enable_random_slow_decay;
 	if(data->chopper_mode) {
 		tmc5160.registers.bits.chopconf.bit.hstrt = data->fast_decay_duration & 0b111;
 		tmc5160.registers.bits.chopconf.bit.fd3   = (data->fast_decay_duration >> 3) & 0b1;
@@ -371,15 +371,15 @@ BootloaderHandleMessageResponse set_spreadcycle_configuration(const SetSpreadcyc
 BootloaderHandleMessageResponse get_spreadcycle_configuration(const GetSpreadcycleConfiguration *data, GetSpreadcycleConfiguration_Response *response) {
 	response->header.length = sizeof(GetSpreadcycleConfiguration_Response);
 	response->slow_decay_duration           = tmc5160.registers.bits.chopconf.bit.toff;
-	response->enable_random_slow_decay      = tmc5160.registers.bits.chopconf.bit.rndtf;
+//	response->enable_random_slow_decay      = tmc5160.registers.bits.chopconf.bit.rndtf;
 	if(tmc5160.registers.bits.chopconf.bit.chm) {
 		response->fast_decay_duration       = tmc5160.registers.bits.chopconf.bit.hstrt | (tmc5160.registers.bits.chopconf.bit.fd3 << 3);
-		response->sine_wave_offset           = tmc5160.registers.bits.chopconf.bit.hend;
+		response->sine_wave_offset          = tmc5160.registers.bits.chopconf.bit.hend;
 		response->hysteresis_start_value    = 0;
 		response->hysteresis_end_value      = 0;
 	} else {
 		response->fast_decay_duration       = 0;
-		response->sine_wave_offset           = 0;
+		response->sine_wave_offset          = 0;
 		response->hysteresis_start_value    = tmc5160.registers.bits.chopconf.bit.hstrt;
 		response->hysteresis_end_value      = tmc5160.registers.bits.chopconf.bit.hend;
 	}
@@ -565,10 +565,6 @@ BootloaderHandleMessageResponse set_error_led_config(const SetErrorLEDConfig *da
 
 		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_ON:
 			XMC_GPIO_SetOutputLow(TMC5160_ERROR_LED_PIN);
-			break;
-
-		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR:
-			// TODO
 			break;
 
 		default: break;
