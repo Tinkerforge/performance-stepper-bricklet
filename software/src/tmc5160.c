@@ -133,7 +133,7 @@ static void tmc5160_task_handle_gpio(void) {
 static void tmc5160_task_handle_error_led(const uint32_t t) {
 	static uint32_t last_time = 0;
 
-	uint8_t error = 0;
+	uint32_t error = 0;
 	if(voltage.value < 9000) {
 		error = 500;
 	}
