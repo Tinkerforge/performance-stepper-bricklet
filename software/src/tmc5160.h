@@ -725,12 +725,17 @@ typedef struct {
 	bool registers_write[TMC5160_NUM_REGISTERS];
 	bool registers_read[TMC5160_NUM_REGISTERS];
 
+	uint16_t max_current;
+
 	uint16_t high_level_standstill_current;
 	uint16_t high_level_motor_run_current;
 	uint16_t high_level_current;
 	int32_t  high_level_last_steps;
-	uint8_t last_status;
+	int32_t high_level_ramp_zero_wait;
+	uint16_t high_level_standstill_delay_time;
+	uint16_t high_level_power_down_time;
 
+	uint8_t last_status;
 	uint32_t last_read_time;
 
 	LEDFlickerState error_led_flicker_state;
