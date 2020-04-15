@@ -183,7 +183,7 @@ BootloaderHandleMessageResponse get_current_position(const GetCurrentPosition *d
 
 BootloaderHandleMessageResponse get_current_velocity(const GetCurrentVelocity *data, GetCurrentVelocity_Response *response) {
 	response->header.length = sizeof(GetCurrentVelocity_Response);
-	response->velocity      = (int32_t)tmc5160.registers.bits.vactual.bit.vactual;
+	response->velocity      = INTN_TO_INT32((int32_t)tmc5160.registers.bits.vactual.bit.vactual, 24);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
