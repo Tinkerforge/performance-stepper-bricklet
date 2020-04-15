@@ -736,6 +736,8 @@ typedef struct {
 	LEDFlickerState error_led_flicker_state;
 	LEDFlickerState enable_led_flicker_state;
 	LEDFlickerState steps_led_flicker_state;
+
+	bool spi_communication_in_progress;
 } TMC5160;
 
 uint32_t tmc5160_task_register_read(const uint8_t reg);

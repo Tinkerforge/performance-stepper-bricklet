@@ -43,6 +43,11 @@ TMC5160 tmc5160;
 CoopTask tmc5160_task;
 
 uint32_t tmc5160_task_register_read(const uint8_t reg) {
+	while(tmc5160.spi_communication_in_progress) {
+		coop_task_yield();
+	}
+
+	tmc5160.spi_communication_in_progress = true;
 	uint8_t tmp[5] = {
 		TMC5160_SPI_READ | reg, 
 		0, 0, 0, 0
@@ -54,6 +59,7 @@ uint32_t tmc5160_task_register_read(const uint8_t reg) {
 	if(!spi_fifo_coop_transceive(&tmc5160.spi_fifo, 5, tmp, tmp_read1)) {
 		// TODO: Reset SPI here in case of error?
 		tmc5160.last_status = 0xFF;
+		tmc5160.spi_communication_in_progress = false;
 		return 0xFFFFFFFF;
 	}
 
@@ -62,14 +68,22 @@ uint32_t tmc5160_task_register_read(const uint8_t reg) {
 	if(!spi_fifo_coop_transceive(&tmc5160.spi_fifo, 5, tmp, tmp_read2)) {
 		// TODO: Reset SPI here in case of error?
 		tmc5160.last_status = 0xFF;
+		tmc5160.spi_communication_in_progress = false;
 		return 0xFFFFFFFF;
 	}
 
 	tmc5160.last_status = tmp_read2[0];
+
+	tmc5160.spi_communication_in_progress = false;
 	return (tmp_read2[1] << 24) | (tmp_read2[2] << 16) | (tmp_read2[3] << 8) | (tmp_read2[4] << 0);
 }
 
 void tmc5160_task_register_write(const uint8_t reg, const uint32_t data) {
+	while(tmc5160.spi_communication_in_progress) {
+		coop_task_yield();
+	}
+	tmc5160.spi_communication_in_progress = false;
+
 	uint8_t tmp[5] = {
 		TMC5160_SPI_WRITE | reg,
 		(data >> 24) & 0xFF,
@@ -81,10 +95,12 @@ void tmc5160_task_register_write(const uint8_t reg, const uint32_t data) {
 	if(!spi_fifo_coop_transceive(&tmc5160.spi_fifo, 5, tmp, tmp)) {
 		// TODO: Reset SPI here in case of error?
 		tmc5160.last_status = 0xFF;
+		tmc5160.spi_communication_in_progress = false;
 		return;
 	}
 
 	tmc5160.last_status = tmp[0];
+	tmc5160.spi_communication_in_progress = false;
 }
 
 static void tmc5160_task_register_log(void) {
