@@ -36,7 +36,7 @@
 #define TMC5160_REG_GSTAT         0x01 // R+C
 #define TMC5160_REG_IFCNT         0x02 // R
 #define TMC5160_REG_SLAVECONF     0x03 //  W
-#define TMC5160_REG_IOIN          0x04 // R
+#define TMC5160_REG_IOEN          0x04 // R
 #define TMC5160_REG_X_COMPARE     0x05 //  W
 #define TMC5160_REG_OTP_PROG      0x06 //  W
 #define TMC5160_REG_OTP_READ      0x07 // R
@@ -543,18 +543,18 @@ typedef union {
 		uint32_t hend:4;
 		uint32_t fd3:1;
 		uint32_t disfdcc:1;
-		uint32_t rndtf:1;
+		uint32_t :1; // Set to 0
 		uint32_t chm:1;
 		uint32_t tbl:2;
-		uint32_t vsense:1;
+		uint32_t :1; // Set to 0
 		uint32_t vhighfs:1;
 		uint32_t vhighchm:1;
-		uint32_t sync:4;
+		uint32_t tpfd:4;
 		uint32_t mres:4;
 		uint32_t intpol:1;
 		uint32_t dedge:1;
 		uint32_t diss2g:1;
-		uint32_t :1; // Set to 0
+		uint32_t diss2vs:1;
 	} bit;
 	uint32_t reg;
 } TMC5160RegCHOPCONF;
@@ -725,17 +725,24 @@ typedef struct {
 	bool registers_write[TMC5160_NUM_REGISTERS];
 	bool registers_read[TMC5160_NUM_REGISTERS];
 
+	uint16_t max_current;
+
 	uint16_t high_level_standstill_current;
 	uint16_t high_level_motor_run_current;
 	uint16_t high_level_current;
 	int32_t  high_level_last_steps;
-	uint8_t last_status;
+	int32_t high_level_ramp_zero_wait;
+	uint16_t high_level_standstill_delay_time;
+	uint16_t high_level_power_down_time;
 
+	uint8_t last_status;
 	uint32_t last_read_time;
 
 	LEDFlickerState error_led_flicker_state;
 	LEDFlickerState enable_led_flicker_state;
 	LEDFlickerState steps_led_flicker_state;
+
+	bool spi_communication_in_progress;
 } TMC5160;
 
 uint32_t tmc5160_task_register_read(const uint8_t reg);

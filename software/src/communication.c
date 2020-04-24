@@ -89,37 +89,31 @@ BootloaderHandleMessageResponse set_motion_configuration(const SetMotionConfigur
 	if(data->ramping_mode > SILENT_STEPPER_V2_RAMPING_MODE_HOLD) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->velocity_start > 0x1FFFF) { // 18 bit
+	if((data->velocity_start < 0)   || (data->velocity_start > 0x1FFFF)) { // 18 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->acceleration_1 > 0xFFFF) { // 16 bit
+	if((data->acceleration_1 < 0)   || (data->acceleration_1 > 0xFFFF)) { // 16 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->velocity_1 > 0xFFFFF) { //20 bit
+	if((data->velocity_1 < 0)       || (data->velocity_1 > 0xFFFFF)) { //20 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->acceleration_max > 0xFFFF) { // 16 bit
+	if((data->acceleration_max < 0) || (data->acceleration_max > 0xFFFF)) { // 16 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->velocity_max > (0x7fffff - 511)) { // 23 bit - 512
+	if((data->velocity_max < 0)     || (data->velocity_max > (0x7fffff - 511))) { // 23 bit - 512
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->deceleration_max > 0xFFFF) { // 16 bit
+	if((data->deceleration_max < 0) || (data->deceleration_max > 0xFFFF)) { // 16 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->deceleration_1 > 0xFFFF) { // 16 bit
+	if((data->deceleration_1 < 1)   || (data->deceleration_1 > 0xFFFF)) { // 16 bit, 0 not allowed
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->deceleration_1 == 0) { // 0 not allowed
-		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
-	}	
-	if(data->velocity_stop > 0x1FFFF) { // 18 bit
+	if((data->velocity_stop < 1)    || (data->velocity_stop > 0x1FFFF)) { // 18 bit, 0 not allowed
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
-	if(data->velocity_stop == 0) { // 0 not allowed
-		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
-	}	
-	if(data->ramp_zero_wait > 0xFFFF) { // 16 bit
+	if((data->ramp_zero_wait < 0)   || (data->ramp_zero_wait > 2796)) { // 0-2796ms -> 16 bit
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -150,44 +144,25 @@ BootloaderHandleMessageResponse set_motion_configuration(const SetMotionConfigur
 	tmc5160.registers.bits.vstop.bit.vstop         = data->velocity_stop;
 	tmc5160.registers_write[TMC5160_REG_VSTOP]     = true;
 
-	tmc5160.registers.bits.tzerowait.bit.tzerowait = data->ramp_zero_wait;
+	tmc5160.high_level_ramp_zero_wait              = data->ramp_zero_wait;
+	tmc5160.registers.bits.tzerowait.bit.tzerowait = SCALE(data->ramp_zero_wait, 0, 2796, 0, 0xFFFF);
 	tmc5160.registers_write[TMC5160_REG_TZEROWAIT] = true;
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
 BootloaderHandleMessageResponse get_motion_configuration(const GetMotionConfiguration *data, GetMotionConfiguration_Response *response) {
-	response->header.length                        = sizeof(GetMotionConfiguration_Response);
-
-	response->ramping_mode                         = tmc5160.registers.bits.rampmode.bit.rampmode;
-	tmc5160.registers_write[TMC5160_REG_RAMPMODE]  = true;
-
-	response->velocity_start                       = tmc5160.registers.bits.vstart.bit.vstart;
-	tmc5160.registers_write[TMC5160_REG_VSTART]    = true;
-
-	response->acceleration_1                       = tmc5160.registers.bits.a1.bit.a1;
-	tmc5160.registers_write[TMC5160_REG_A1]        = true;
-
-	response->velocity_1                           = tmc5160.registers.bits.v1.bit.v1;
-	tmc5160.registers_write[TMC5160_REG_V1]        = true;
-
-	response->acceleration_max                     = tmc5160.registers.bits.amax.bit.amax;
-	tmc5160.registers_write[TMC5160_REG_AMAX]      = true;
-
-	response->velocity_max                         = tmc5160.registers.bits.vmax.bit.vmax;
-	tmc5160.registers_write[TMC5160_REG_VMAX]      = true;
-
-	response->deceleration_max                     = tmc5160.registers.bits.dmax.bit.dmax;
-	tmc5160.registers_write[TMC5160_REG_DMAX]      = true;
-
-	response->deceleration_1                       = tmc5160.registers.bits.d1.bit.d1;
-	tmc5160.registers_write[TMC5160_REG_D1]        = true;
-
-	response->velocity_stop                        = tmc5160.registers.bits.vstop.bit.vstop;
-	tmc5160.registers_write[TMC5160_REG_VSTOP]     = true;
-
-	response->ramp_zero_wait                       = tmc5160.registers.bits.tzerowait.bit.tzerowait;
-	tmc5160.registers_write[TMC5160_REG_TZEROWAIT] = true;
+	response->header.length    = sizeof(GetMotionConfiguration_Response);
+	response->ramping_mode     = tmc5160.registers.bits.rampmode.bit.rampmode;
+	response->velocity_start   = tmc5160.registers.bits.vstart.bit.vstart;
+	response->acceleration_1   = tmc5160.registers.bits.a1.bit.a1;
+	response->velocity_1       = tmc5160.registers.bits.v1.bit.v1;
+	response->acceleration_max = tmc5160.registers.bits.amax.bit.amax;
+	response->velocity_max     = tmc5160.registers.bits.vmax.bit.vmax;
+	response->deceleration_max = tmc5160.registers.bits.dmax.bit.dmax;
+	response->deceleration_1   = tmc5160.registers.bits.d1.bit.d1;
+	response->velocity_stop    = tmc5160.registers.bits.vstop.bit.vstop;
+	response->ramp_zero_wait   = tmc5160.high_level_ramp_zero_wait;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -208,7 +183,7 @@ BootloaderHandleMessageResponse get_current_position(const GetCurrentPosition *d
 
 BootloaderHandleMessageResponse get_current_velocity(const GetCurrentVelocity *data, GetCurrentVelocity_Response *response) {
 	response->header.length = sizeof(GetCurrentVelocity_Response);
-	response->velocity      = (int32_t)tmc5160.registers.bits.vactual.bit.vactual;
+	response->velocity      = INTN_TO_INT32((int32_t)tmc5160.registers.bits.vactual.bit.vactual, 24);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -305,29 +280,31 @@ BootloaderHandleMessageResponse set_enabled(const SetEnabled *data) {
 
 BootloaderHandleMessageResponse get_enabled(const GetEnabled *data, GetEnabled_Response *response) {
 	response->header.length = sizeof(GetEnabled_Response);
-	response->enabled       = XMC_GPIO_GetInput(TMC5160_ENABLE_PIN);
+	response->enabled       = !XMC_GPIO_GetInput(TMC5160_ENABLE_PIN);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
 BootloaderHandleMessageResponse set_basic_configuration(const SetBasicConfiguration *data) {
-	if(data->standstill_delay_time > 15) { // TODO: Scale to ms?
+	if(data->standstill_delay_time > 327) { // 0-327ms -> 0-15
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	if(data->power_down_time > 255) { // TODO Scale to ms?
+	if(data->power_down_time > 5570) { // 0-5570ms -> 0-255
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	tmc5160.high_level_standstill_current = MIN(data->standstill_current, tmc5160.high_level_current);
-	tmc5160.high_level_motor_run_current  = MIN(data->motor_run_current,  tmc5160.high_level_current);
+	tmc5160.high_level_standstill_current             = MIN(data->standstill_current, tmc5160.high_level_current);
+	tmc5160.high_level_motor_run_current              = MIN(data->motor_run_current,  tmc5160.high_level_current);
+	tmc5160.high_level_standstill_delay_time          = data->standstill_delay_time;
+	tmc5160.high_level_power_down_time                = data->power_down_time;
 
 	tmc5160.registers.bits.ihold_irun.bit.ihold       = BETWEEN(0, SCALE(data->standstill_current, 0, tmc5160.high_level_current, 0, 31), 31);
 	tmc5160.registers.bits.ihold_irun.bit.irun        = BETWEEN(0, SCALE(data->motor_run_current,  0, tmc5160.high_level_current, 0, 31), 31);
-	tmc5160.registers.bits.ihold_irun.bit.ihold_delay = data->standstill_delay_time;
+	tmc5160.registers.bits.ihold_irun.bit.ihold_delay = SCALE(data->standstill_delay_time, 0, 327, 0, 15);
 	tmc5160.registers_write[TMC5160_REG_IHOLD_IRUN]   = true;
 
-	tmc5160.registers.bits.tpowerdown.bit.tpowerdown  = data->power_down_time;
+	tmc5160.registers.bits.tpowerdown.bit.tpowerdown  = SCALE(data->power_down_time, 0, 5570, 0, 255);
 	tmc5160.registers_write[TMC5160_REG_TPOWERDOWN]   = true;
 
 	tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs      = data->stealth_threshold;
@@ -349,8 +326,8 @@ BootloaderHandleMessageResponse get_basic_configuration(const GetBasicConfigurat
 	response->header.length              = sizeof(GetBasicConfiguration_Response);
 	response->standstill_current         = tmc5160.high_level_standstill_current;
 	response->motor_run_current          = tmc5160.high_level_motor_run_current;
-	response->standstill_delay_time      = tmc5160.registers.bits.ihold_irun.bit.ihold_delay;
-	response->power_down_time            = tmc5160.registers.bits.tpowerdown.bit.tpowerdown;
+	response->standstill_delay_time      = tmc5160.high_level_standstill_delay_time;
+	response->power_down_time            = tmc5160.high_level_power_down_time;
 	response->stealth_threshold          = tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs;
 	response->coolstep_threshold         = tmc5160.registers.bits.tcoolthrs.bit.tcoolthrs;
 	response->classic_threshold          = tmc5160.registers.bits.thigh.bit.thigh;
@@ -372,7 +349,7 @@ BootloaderHandleMessageResponse set_spreadcycle_configuration(const SetSpreadcyc
 
 
 	tmc5160.registers.bits.chopconf.bit.toff      = data->slow_decay_duration;
-	tmc5160.registers.bits.chopconf.bit.rndtf     = data->enable_random_slow_decay;
+//	tmc5160.registers.bits.chopconf.bit.rndtf     = data->enable_random_slow_decay;
 	if(data->chopper_mode) {
 		tmc5160.registers.bits.chopconf.bit.hstrt = data->fast_decay_duration & 0b111;
 		tmc5160.registers.bits.chopconf.bit.fd3   = (data->fast_decay_duration >> 3) & 0b1;
@@ -394,15 +371,15 @@ BootloaderHandleMessageResponse set_spreadcycle_configuration(const SetSpreadcyc
 BootloaderHandleMessageResponse get_spreadcycle_configuration(const GetSpreadcycleConfiguration *data, GetSpreadcycleConfiguration_Response *response) {
 	response->header.length = sizeof(GetSpreadcycleConfiguration_Response);
 	response->slow_decay_duration           = tmc5160.registers.bits.chopconf.bit.toff;
-	response->enable_random_slow_decay      = tmc5160.registers.bits.chopconf.bit.rndtf;
+//	response->enable_random_slow_decay      = tmc5160.registers.bits.chopconf.bit.rndtf;
 	if(tmc5160.registers.bits.chopconf.bit.chm) {
 		response->fast_decay_duration       = tmc5160.registers.bits.chopconf.bit.hstrt | (tmc5160.registers.bits.chopconf.bit.fd3 << 3);
-		response->sine_wave_offset           = tmc5160.registers.bits.chopconf.bit.hend;
+		response->sine_wave_offset          = tmc5160.registers.bits.chopconf.bit.hend;
 		response->hysteresis_start_value    = 0;
 		response->hysteresis_end_value      = 0;
 	} else {
 		response->fast_decay_duration       = 0;
-		response->sine_wave_offset           = 0;
+		response->sine_wave_offset          = 0;
 		response->hysteresis_start_value    = tmc5160.registers.bits.chopconf.bit.hstrt;
 		response->hysteresis_end_value      = tmc5160.registers.bits.chopconf.bit.hend;
 	}
@@ -588,10 +565,6 @@ BootloaderHandleMessageResponse set_error_led_config(const SetErrorLEDConfig *da
 
 		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_ON:
 			XMC_GPIO_SetOutputLow(TMC5160_ERROR_LED_PIN);
-			break;
-
-		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR:
-			// TODO
 			break;
 
 		default: break;
