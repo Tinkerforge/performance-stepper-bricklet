@@ -1,4 +1,4 @@
-(kicad_pcb (version 20171130) (host pcbnew 5.1.5-52549c5~84~ubuntu19.04.1)
+(kicad_pcb (version 20171130) (host pcbnew "(5.1.4)-1")
 
   (general
     (thickness 1.6)
@@ -76,7 +76,7 @@
     (pad_to_mask_clearance 0)
     (aux_axis_origin 45 90)
     (grid_origin 45 90)
-    (visible_elements FFFFFF7F)
+    (visible_elements 7FFFFFFF)
     (pcbplotparams
       (layerselection 0x010fc_ffffffff)
       (usegerberextensions true)
@@ -3240,7 +3240,7 @@
   )
 
   (module kicad-libraries:C0603F (layer F.Cu) (tedit 58F5DD02) (tstamp 5E2AD86E)
-    (at 59.7 143.7 180)
+    (at 59.7 142.2 180)
     (path /5E2BADF6)
     (attr smd)
     (fp_text reference C25 (at 0.05 0.225) (layer F.Fab)
@@ -3416,7 +3416,7 @@
   )
 
   (module kicad-libraries:R0603F (layer F.Cu) (tedit 58F5DD02) (tstamp 5E2AD8C2)
-    (at 59.7 142.2)
+    (at 59.7 143.7)
     (path /5E2B788B)
     (attr smd)
     (fp_text reference R22 (at 0.05 0.225) (layer F.Fab)
