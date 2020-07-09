@@ -1160,27 +1160,10 @@ F 3 "" H 4100 3250 50  0001 C CNN
 	1    4100 3250
 	1    0    0    -1  
 $EndComp
-$Comp
-L tinkerforge:CONN_5 P4
-U 1 1 5E4425A0
-P 2000 3800
-F 0 "P4" H 1842 3385 50  0000 C CNN
-F 1 "PROTO" H 1842 3476 50  0000 C CNN
-F 2 "kicad-libraries:pin_array_5x1" H 2000 3800 60  0001 C CNN
-F 3 "" H 2000 3800 60  0000 C CNN
-	1    2000 3800
-	-1   0    0    1   
-$EndComp
 Wire Wire Line
-	2400 3600 3300 3600
+	2400 3600 2550 3600
 Wire Wire Line
-	2400 3700 3300 3700
-Wire Wire Line
-	3300 4050 2700 4050
-Wire Wire Line
-	2700 4050 2700 4000
-Wire Wire Line
-	2700 4000 2400 4000
+	2400 3700 2700 3700
 $Comp
 L tinkerforge:Cs C29
 U 1 1 5E38203E
@@ -1298,8 +1281,6 @@ Wire Wire Line
 Wire Wire Line
 	1600 3200 3300 3200
 Wire Wire Line
-	1800 3350 3300 3350
-Wire Wire Line
 	1500 3350 1500 3400
 Wire Wire Line
 	1500 3400 1400 3400
@@ -1316,18 +1297,6 @@ Wire Wire Line
 	900  3400 1000 3400
 NoConn ~ 1000 3300
 NoConn ~ 1400 3300
-Wire Wire Line
-	2900 3800 2900 3850
-Wire Wire Line
-	2900 3850 3300 3850
-Wire Wire Line
-	2400 3800 2900 3800
-Wire Wire Line
-	3300 3950 2800 3950
-Wire Wire Line
-	2800 3950 2800 3900
-Wire Wire Line
-	2800 3900 2400 3900
 $Comp
 L tinkerforge:TVS D8
 U 1 1 5E3A0CEA
@@ -1389,4 +1358,88 @@ Wire Wire Line
 Connection ~ 10300 1400
 Wire Wire Line
 	10300 1400 10600 1400
+$Comp
+L tinkerforge:CONN_01X06 P4
+U 1 1 5F09206F
+P 1900 3800
+F 0 "P4" H 1817 3325 50  0000 C CNN
+F 1 "PROTO" H 1817 3416 50  0000 C CNN
+F 2 "kicad-libraries:pin_array_1x6-P2mm_D1mm" H 1817 3417 50  0001 C CNN
+F 3 "" H 1900 3800 50  0000 C CNN
+	1    1900 3800
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	2100 3750 2400 3750
+Wire Wire Line
+	2400 3750 2400 3700
+Wire Wire Line
+	2100 3550 2400 3550
+Wire Wire Line
+	2400 3550 2400 3600
+$Comp
+L tinkerforge:GND #PWR028
+U 1 1 5F1048EB
+P 2100 3650
+F 0 "#PWR028" H 2100 3400 50  0001 C CNN
+F 1 "GND" H 2105 3477 50  0000 C CNN
+F 2 "" H 2100 3650 50  0000 C CNN
+F 3 "" H 2100 3650 50  0000 C CNN
+	1    2100 3650
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2100 3850 3300 3850
+Wire Wire Line
+	2100 3950 3300 3950
+Wire Wire Line
+	2100 4050 3300 4050
+$Comp
+L tinkerforge:Rs R30
+U 1 1 5F121548
+P 2550 3500
+F 0 "R30" V 2500 3500 31  0000 C CNN
+F 1 "DNP" V 2550 3500 31  0000 C CNN
+F 2 "kicad-libraries:R0603F" H 2550 3500 60  0001 C CNN
+F 3 "" H 2550 3500 60  0000 C CNN
+	1    2550 3500
+	-1   0    0    1   
+$EndComp
+Connection ~ 2550 3600
+$Comp
+L tinkerforge:Rs R31
+U 1 1 5F12308C
+P 2700 3500
+F 0 "R31" V 2650 3500 31  0000 C CNN
+F 1 "DNP" V 2700 3500 31  0000 C CNN
+F 2 "kicad-libraries:R0603F" H 2700 3500 60  0001 C CNN
+F 3 "" H 2700 3500 60  0000 C CNN
+	1    2700 3500
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1800 3350 3300 3350
+Wire Wire Line
+	2700 3600 2700 3700
+Connection ~ 2700 3700
+Wire Wire Line
+	2700 3700 3300 3700
+Wire Wire Line
+	2550 3600 3300 3600
+Wire Wire Line
+	2550 3400 2600 3400
+$Comp
+L tinkerforge:VCC #PWR0111
+U 1 1 5F1508C8
+P 2600 3400
+F 0 "#PWR0111" H 2600 3500 40  0001 C CNN
+F 1 "VCC" H 2609 3556 40  0000 C CNN
+F 2 "" H 2600 3400 60  0000 C CNN
+F 3 "" H 2600 3400 60  0000 C CNN
+	1    2600 3400
+	1    0    0    -1  
+$EndComp
+Connection ~ 2600 3400
+Wire Wire Line
+	2600 3400 2700 3400
 $EndSCHEMATC
