@@ -26,6 +26,8 @@
 #include "bricklib2/hal/spi_fifo/spi_fifo.h"
 #include "bricklib2/utility/led_flicker.h"
 
+#define TCP5160_CLOCK_FREQUENCY ((uint32_t)12000000) // 12.0MHz internal clock
+
 #define TMC5160_NUM_REGISTERS 116
 
 // ****************** TMC5160 REGISTERS *****************
@@ -731,9 +733,12 @@ typedef struct {
 	uint16_t high_level_motor_run_current;
 	uint16_t high_level_current;
 	int32_t  high_level_last_steps;
-	int32_t high_level_ramp_zero_wait;
+	int32_t  high_level_ramp_zero_wait;
 	uint16_t high_level_standstill_delay_time;
 	uint16_t high_level_power_down_time;
+	uint16_t high_level_stealth_threshold;
+	uint16_t high_level_coolstep_threshold;
+	uint16_t high_level_classic_threshold;
 
 	uint8_t last_status;
 	uint32_t last_read_time;

@@ -298,6 +298,9 @@ BootloaderHandleMessageResponse set_basic_configuration(const SetBasicConfigurat
 	tmc5160.high_level_motor_run_current              = MIN(data->motor_run_current,  tmc5160.high_level_current);
 	tmc5160.high_level_standstill_delay_time          = data->standstill_delay_time;
 	tmc5160.high_level_power_down_time                = data->power_down_time;
+	tmc5160.high_level_stealth_threshold              = data->stealth_threshold;
+	tmc5160.high_level_coolstep_threshold             = data->coolstep_threshold;
+	tmc5160.high_level_classic_threshold              = data->classic_threshold;
 
 	tmc5160.registers.bits.ihold_irun.bit.ihold       = BETWEEN(0, SCALE(data->standstill_current, 0, tmc5160.high_level_current, 0, 31), 31);
 	tmc5160.registers.bits.ihold_irun.bit.irun        = BETWEEN(0, SCALE(data->motor_run_current,  0, tmc5160.high_level_current, 0, 31), 31);
@@ -307,17 +310,19 @@ BootloaderHandleMessageResponse set_basic_configuration(const SetBasicConfigurat
 	tmc5160.registers.bits.tpowerdown.bit.tpowerdown  = SCALE(data->power_down_time, 0, 5570, 0, 255);
 	tmc5160.registers_write[TMC5160_REG_TPOWERDOWN]   = true;
 
-	tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs      = data->stealth_threshold;
+	tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs      = MIN(TCP5160_CLOCK_FREQUENCY/(data->stealth_threshold*256), 0xFFFFF);
 	tmc5160.registers_write[TMC5160_REG_TPWMTHRS]     = true;
 
-	tmc5160.registers.bits.tcoolthrs.bit.tcoolthrs    = data->coolstep_threshold;
+	tmc5160.registers.bits.tcoolthrs.bit.tcoolthrs    = MIN(TCP5160_CLOCK_FREQUENCY/(data->coolstep_threshold*256), 0xFFFFF);
 	tmc5160.registers_write[TMC5160_REG_TCOOLTHRS]    = true;
 
-	tmc5160.registers.bits.thigh.bit.thigh            = data->classic_threshold;
+	tmc5160.registers.bits.thigh.bit.thigh            = MIN(TCP5160_CLOCK_FREQUENCY/(data->classic_threshold*256), 0xFFFFF);
 	tmc5160.registers_write[TMC5160_REG_THIGH]        = true;
 
 	tmc5160.registers.bits.chopconf.bit.vhighchm      = data->high_velocity_chopper_mode;
 	tmc5160.registers_write[TMC5160_REG_CHOPCONF]     = true;
+
+	// TODO: Add high velocity fullstep selection
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
@@ -328,9 +333,9 @@ BootloaderHandleMessageResponse get_basic_configuration(const GetBasicConfigurat
 	response->motor_run_current          = tmc5160.high_level_motor_run_current;
 	response->standstill_delay_time      = tmc5160.high_level_standstill_delay_time;
 	response->power_down_time            = tmc5160.high_level_power_down_time;
-	response->stealth_threshold          = tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs;
-	response->coolstep_threshold         = tmc5160.registers.bits.tcoolthrs.bit.tcoolthrs;
-	response->classic_threshold          = tmc5160.registers.bits.thigh.bit.thigh;
+	response->stealth_threshold          = tmc5160.high_level_stealth_threshold;
+	response->coolstep_threshold         = tmc5160.high_level_coolstep_threshold;
+	response->classic_threshold          = tmc5160.high_level_classic_threshold;
 	response->high_velocity_chopper_mode = tmc5160.registers.bits.chopconf.bit.vhighchm;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
@@ -463,7 +468,8 @@ BootloaderHandleMessageResponse set_misc_configuration(const SetMiscConfiguratio
 	}
 
 	tmc5160.registers.bits.chopconf.bit.diss2g    = data->disable_short_to_ground_protection;
-	tmc5160.registers.bits.chopconf.bit.sync      = data->synchronize_phase_frequency;
+	// TODO: Set diss2vs here?
+//	tmc5160.registers.bits.chopconf.bit.sync      = data->synchronize_phase_frequency;
 	tmc5160.registers_write[TMC5160_REG_CHOPCONF] = true;
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
@@ -472,7 +478,8 @@ BootloaderHandleMessageResponse set_misc_configuration(const SetMiscConfiguratio
 BootloaderHandleMessageResponse get_misc_configuration(const GetMiscConfiguration *data, GetMiscConfiguration_Response *response) {
 	response->header.length = sizeof(GetMiscConfiguration_Response);
 	response->disable_short_to_ground_protection = tmc5160.registers.bits.chopconf.bit.diss2g;
-	response->synchronize_phase_frequency        = tmc5160.registers.bits.chopconf.bit.sync;
+	// TODO: Set diss2vs here?
+//	response->synchronize_phase_frequency        = tmc5160.registers.bits.chopconf.bit.sync;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

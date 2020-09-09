@@ -25,11 +25,18 @@
 #include "xmc_gpio.h"
 #include "xmc_vadc.h"
 
-#define VOLTAGE_PIN            P2_5
-#define VOLTAGE_RESULT_REG     10
-#define VOLTAGE_CHANNEL_NUM    7
-#define VOLTAGE_CHANNEL_ALIAS -1
-#define VOLTAGE_GROUP_INDEX    1
-#define VOLTAGE_GROUP          VADC_G1
+#define VOLTAGE_PIN                P2_5
+#define VOLTAGE_RESULT_REG         10
+#define VOLTAGE_CHANNEL_NUM        7
+#define VOLTAGE_CHANNEL_ALIAS     -1
+#define VOLTAGE_GROUP_INDEX        1
+#define VOLTAGE_GROUP              VADC_G1
+
+#define TEMPERATURE_PIN            P2_11
+#define TEMPERATURE_RESULT_REG     9
+#define TEMPERATURE_CHANNEL_NUM    0
+#define TEMPERATURE_CHANNEL_ALIAS  4
+#define TEMPERATURE_GROUP_INDEX    0
+#define TEMPERATURE_GROUP          VADC_G0
 
 #endif

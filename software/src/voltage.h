@@ -25,11 +25,17 @@
 #include <stdint.h>
 
 typedef struct {
-    uint16_t value;
+	uint16_t value;
 
-    uint32_t value_sum;
-    uint32_t value_sum_count;
-    uint32_t last_time;
+	uint32_t value_sum;
+	uint32_t value_sum_count;
+
+	int32_t temperature;
+
+	uint32_t temperature_sum;
+	uint32_t temperature_sum_count;
+
+	uint32_t last_time;
 } Voltage;
 
 extern Voltage voltage;

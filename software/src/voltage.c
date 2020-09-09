@@ -30,11 +30,11 @@
 Voltage voltage;
 
 void voltage_init(void) {
-    const XMC_GPIO_CONFIG_t input_pin_config = {
-        .mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
-        .input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD,
-    };
-    XMC_GPIO_Init(VOLTAGE_PIN, &input_pin_config);
+	const XMC_GPIO_CONFIG_t input_pin_config = {
+		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
+		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD,
+	};
+	XMC_GPIO_Init(VOLTAGE_PIN, &input_pin_config);
 
 	// This structure contains the Global related Configuration.
 	const XMC_VADC_GLOBAL_CONFIG_t adc_global_config = {
@@ -118,9 +118,12 @@ void voltage_init(void) {
 	XMC_VADC_GLOBAL_Init(VADC, &adc_global_config);
 
 	XMC_VADC_GROUP_Init(VOLTAGE_GROUP, &group_init_handle);
+	XMC_VADC_GROUP_Init(TEMPERATURE_GROUP, &group_init_handle);
 	XMC_VADC_GROUP_SetPowerMode(VOLTAGE_GROUP, XMC_VADC_GROUP_POWERMODE_NORMAL);
+	XMC_VADC_GROUP_SetPowerMode(TEMPERATURE_GROUP, XMC_VADC_GROUP_POWERMODE_NORMAL);
 
 	XMC_VADC_GLOBAL_SHS_EnableAcceleratedMode(SHS0, XMC_VADC_GROUP_INDEX_1);
+	XMC_VADC_GLOBAL_SHS_EnableAcceleratedMode(SHS0, XMC_VADC_GROUP_INDEX_0);
 	XMC_VADC_GLOBAL_SHS_SetAnalogReference(SHS0, XMC_VADC_GLOBAL_SHS_AREF_EXTERNAL_VDD_UPPER_RANGE);
 
 	XMC_VADC_GLOBAL_StartupCalibration(VADC);
@@ -134,59 +137,87 @@ void voltage_init(void) {
 	// Initialize the global result register
 	XMC_VADC_GLOBAL_ResultInit(VADC, &adc_global_result_config);
 
-    XMC_VADC_CHANNEL_CONFIG_t  channel_config = {
-        .input_class                =  XMC_VADC_CHANNEL_CONV_GLOBAL_CLASS0,    // Global ICLASS 0 selected
-        .lower_boundary_select 	    =  XMC_VADC_CHANNEL_BOUNDARY_GROUP_BOUND0,
-        .upper_boundary_select 	    =  XMC_VADC_CHANNEL_BOUNDARY_GROUP_BOUND0,
-        .event_gen_criteria         =  XMC_VADC_CHANNEL_EVGEN_NEVER,           // Channel Event disabled
-        .sync_conversion  		    =  0,                                      // Sync feature disabled
-        .alternate_reference        =  XMC_VADC_CHANNEL_REF_INTREF,            // Internal reference selected
-        .result_reg_number          =  VOLTAGE_RESULT_REG,                     // GxRES[10] selected
-        .use_global_result          =  0, 				                       // Use Group result register
-        .result_alignment           =  XMC_VADC_RESULT_ALIGN_RIGHT,            // Result alignment - Right Aligned
-        .broken_wire_detect_channel =  XMC_VADC_CHANNEL_BWDCH_VAGND,           // No Broken wire mode select
-        .broken_wire_detect		    =  0,    		                           // No Broken wire detection
-        .bfl                        =  0,                                      // No Boundary flag
-        .channel_priority           =  0,                   		           // Lowest Priority 0 selected
-        .alias_channel              =  VOLTAGE_CHANNEL_ALIAS                   // Channel is Aliased
-    };
+	XMC_VADC_CHANNEL_CONFIG_t  channel_config = {
+		.input_class                =  XMC_VADC_CHANNEL_CONV_GLOBAL_CLASS0,    // Global ICLASS 0 selected
+		.lower_boundary_select 	    =  XMC_VADC_CHANNEL_BOUNDARY_GROUP_BOUND0,
+		.upper_boundary_select 	    =  XMC_VADC_CHANNEL_BOUNDARY_GROUP_BOUND0,
+		.event_gen_criteria         =  XMC_VADC_CHANNEL_EVGEN_NEVER,           // Channel Event disabled
+		.sync_conversion  		    =  0,                                      // Sync feature disabled
+		.alternate_reference        =  XMC_VADC_CHANNEL_REF_INTREF,            // Internal reference selected
+		.result_reg_number          =  VOLTAGE_RESULT_REG,                     // GxRES[10] selected
+		.use_global_result          =  0, 				                       // Use Group result register
+		.result_alignment           =  XMC_VADC_RESULT_ALIGN_RIGHT,            // Result alignment - Right Aligned
+		.broken_wire_detect_channel =  XMC_VADC_CHANNEL_BWDCH_VAGND,           // No Broken wire mode select
+		.broken_wire_detect		    =  0,    		                           // No Broken wire detection
+		.bfl                        =  0,                                      // No Boundary flag
+		.channel_priority           =  0,                   		           // Lowest Priority 0 selected
+		.alias_channel              =  VOLTAGE_CHANNEL_ALIAS                   // Channel is Aliased
+	};
 
-    XMC_VADC_RESULT_CONFIG_t channel_result_config =
-    {
-        .data_reduction_control = 0b11,                         // Accumulate 4 result values
-        .post_processing_mode   = XMC_VADC_DMM_REDUCTION_MODE,  // Use reduction mode
-        .wait_for_read_mode  	= 1,                            // Enabled
-        .part_of_fifo       	= 0 ,                           // No FIFO
-        .event_gen_enable   	= 0                             // Disable Result event
-    };
+	XMC_VADC_RESULT_CONFIG_t channel_result_config =
+	{
+		.data_reduction_control = 0b11,                         // Accumulate 4 result values
+		.post_processing_mode   = XMC_VADC_DMM_REDUCTION_MODE,  // Use reduction mode
+		.wait_for_read_mode  	= 1,                            // Enabled
+		.part_of_fifo       	= 0 ,                           // No FIFO
+		.event_gen_enable   	= 0                             // Disable Result event
+	};
 
 
-    // Initialize for configured channels
-    XMC_VADC_GROUP_ChannelInit(VOLTAGE_GROUP, VOLTAGE_CHANNEL_NUM, &channel_config);
+	// Initialize for configured channels
+	XMC_VADC_GROUP_ChannelInit(VOLTAGE_GROUP, VOLTAGE_CHANNEL_NUM, &channel_config);
+	channel_config.result_reg_number = TEMPERATURE_RESULT_REG;
+	channel_config.alias_channel     = TEMPERATURE_CHANNEL_ALIAS;
+	XMC_VADC_GROUP_ChannelInit(TEMPERATURE_GROUP, TEMPERATURE_CHANNEL_NUM, &channel_config);
 
-    // Initialize for configured result registers
-    XMC_VADC_GROUP_ResultInit(VOLTAGE_GROUP, VOLTAGE_RESULT_REG, &channel_result_config);
+	// Initialize for configured result registers
+	XMC_VADC_GROUP_ResultInit(VOLTAGE_GROUP, VOLTAGE_RESULT_REG, &channel_result_config);
+	XMC_VADC_GROUP_ResultInit(TEMPERATURE_GROUP, TEMPERATURE_RESULT_REG, &channel_result_config);
 
-    XMC_VADC_GLOBAL_BackgroundAddChannelToSequence(VADC, VOLTAGE_GROUP_INDEX, VOLTAGE_CHANNEL_NUM);
+	XMC_VADC_GLOBAL_BackgroundAddChannelToSequence(VADC, VOLTAGE_GROUP_INDEX, VOLTAGE_CHANNEL_NUM);
+	XMC_VADC_GLOBAL_BackgroundAddChannelToSequence(VADC, TEMPERATURE_GROUP_INDEX, TEMPERATURE_CHANNEL_NUM);
 
 	XMC_VADC_GLOBAL_SetResultEventInterruptNode(VADC, XMC_VADC_SR_SHARED_SR0);
 	XMC_VADC_GLOBAL_BackgroundTriggerConversion(VADC);
 }
 
 void voltage_tick(void) {
-    uint32_t result = XMC_VADC_GROUP_GetDetailedResult(VOLTAGE_GROUP, VOLTAGE_RESULT_REG);
-    if(result & (1 << 31)) {
-        voltage.value_sum += result & 0xFFFF;
-        voltage.value_sum_count++;
-    }
+	uint32_t result = XMC_VADC_GROUP_GetDetailedResult(VOLTAGE_GROUP, VOLTAGE_RESULT_REG);
+	if(result & (1 << 31)) {
+		voltage.value_sum += result & 0xFFFF;
+		voltage.value_sum_count++;
+	}
+
+	result = XMC_VADC_GROUP_GetDetailedResult(TEMPERATURE_GROUP, TEMPERATURE_RESULT_REG);
+	if(result & (1 << 31)) {
+		voltage.temperature_sum += result & 0xFFFF;
+		voltage.temperature_sum_count++;
+	}
+	
 
 	if(system_timer_is_time_elapsed_ms(voltage.last_time, 100)) {
-        // Resistor divider: 1:15
-        // mV = adc*3300*16 / (4095*4) = 880/273 ~= 16/5
-        voltage.value = voltage.value_sum*16/(voltage.value_sum_count*5);
+		if(voltage.value_sum_count > 0) {
+			// Resistor divider: 1:15
+			// mV = adc*3300*16 / (4095*4) = 880/273 ~= 16/5
+			voltage.value = voltage.value_sum*16/(voltage.value_sum_count*5);
 
-        voltage.value_sum = 0;
-        voltage.value_sum_count = 0;
-        voltage.last_time = system_timer_get_ms();
+			voltage.value_sum = 0;
+			voltage.value_sum_count = 0;
+		}
+
+		// Temperature according to tmp235 datasheet 7.3, but we calculate on ADC values insteadof mV
+		// T_A    = (V_OUT – V_OFFS ) / T_C + T_INFL
+		// V_OUT  = ADC
+		// V_OFF  = 500/(3300/(4095*4)) = 2481.8181
+		// T_C    = 10/(3300/(4095*4))  = 49.6363
+		// T_INFL = 0
+		if(voltage.temperature_sum_count > 0) {
+			voltage.temperature = (voltage.temperature_sum/((int32_t)voltage.temperature_sum_count) - 2482)*100/496;
+
+			voltage.temperature_sum = 0;
+			voltage.temperature_sum_count = 0;
+		}
+		
+		voltage.last_time = system_timer_get_ms();
 	}
 }

@@ -46,13 +46,12 @@ uint32_t tmc5160_task_register_read(const uint8_t reg) {
 	while(tmc5160.spi_communication_in_progress) {
 		coop_task_yield();
 	}
-
 	tmc5160.spi_communication_in_progress = true;
+
 	uint8_t tmp[5] = {
 		TMC5160_SPI_READ | reg, 
 		0, 0, 0, 0
 	};
-
 
 	// First read sets pointer
 	uint8_t tmp_read1[5] = {0};
@@ -82,7 +81,7 @@ void tmc5160_task_register_write(const uint8_t reg, const uint32_t data) {
 	while(tmc5160.spi_communication_in_progress) {
 		coop_task_yield();
 	}
-	tmc5160.spi_communication_in_progress = false;
+	tmc5160.spi_communication_in_progress = true;
 
 	uint8_t tmp[5] = {
 		TMC5160_SPI_WRITE | reg,
@@ -238,19 +237,20 @@ static void tmc5160_init_spi(void) {
 }
 
 void tmc5160_tick_task(void) {
+	// Default enable pin high -> TMC5160 disabled
 	const XMC_GPIO_CONFIG_t enable_pin_config = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
 		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
 	};
 	XMC_GPIO_Init(TMC5160_ENABLE_PIN, &enable_pin_config);
 
-//#if 0
+#if 0
 	// We start off with reading all registers into memory
 	for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
 		tmc5160.registers.regs[i] = tmc5160_task_register_read(i);
 		logd("read %x -> %d\n\r", i, tmc5160.registers.regs[i]);
 	}
-//#endif
+#endif
 
 	while(true) {
 		tmc5160_task_handle_gpio();
@@ -260,7 +260,7 @@ void tmc5160_tick_task(void) {
 		for(uint8_t i = 0; i < TMC5160_NUM_REGISTERS; i++) {
 			if(tmc5160.registers_write[i]) {
 				tmc5160_task_register_write(i, tmc5160.registers.regs[i]);
-				logd("write %x -> %d\n\r", i, tmc5160.registers.regs[i]);
+				logd("write %x -> %d (%d)\n\r", i, tmc5160.registers.regs[i], tmc5160.last_status);
 				tmc5160.registers_write[i] = false;
 			}
 		}
@@ -290,7 +290,7 @@ void tmc5160_init_registers(const bool read_from_tmc5160, const bool write_to_tm
 	if(set_default) {
 		tmc5160.registers.bits.gconf.bit.recalibrate            = 1;
 		tmc5160.registers.bits.gconf.bit.faststandstill         = 0;
-		tmc5160.registers.bits.gconf.bit.en_pwm_mode            = 0;
+		tmc5160.registers.bits.gconf.bit.en_pwm_mode            = 1;
 		tmc5160.registers.bits.gconf.bit.multistep_filt         = 1;
 		tmc5160.registers.bits.gconf.bit.shaft                  = 0;
 		tmc5160.registers.bits.gconf.bit.diag0_error            = 0;
@@ -324,41 +324,42 @@ void tmc5160_init_registers(const bool read_from_tmc5160, const bool write_to_tm
 
 		tmc5160.registers.bits.factory_conf.bit.fclktrim        = 0;
 
-		tmc5160.registers.bits.short_conf.bit.s2vs_level        = 0;
-		tmc5160.registers.bits.short_conf.bit.s2g_level         = 0;
-		tmc5160.registers.bits.short_conf.bit.shortfilter       = 0;
+		tmc5160.registers.bits.short_conf.bit.s2vs_level        = 6;
+		tmc5160.registers.bits.short_conf.bit.s2g_level         = 6;
+		tmc5160.registers.bits.short_conf.bit.shortfilter       = 1;
 		tmc5160.registers.bits.short_conf.bit.shortdelay        = 0;
 
 		tmc5160.registers.bits.drv_conf.bit.bbmtime             = 0;
-		tmc5160.registers.bits.drv_conf.bit.bbmclks             = 0;
+		tmc5160.registers.bits.drv_conf.bit.bbmclks             = 4;
 		tmc5160.registers.bits.drv_conf.bit.otselect            = 0;
-		tmc5160.registers.bits.drv_conf.bit.drvstrength         = 0;
+		tmc5160.registers.bits.drv_conf.bit.drvstrength         = 2;
 		tmc5160.registers.bits.drv_conf.bit.filt_isense         = 0;
 
-		tmc5160.registers.bits.global_scaler.bit.global_scaler  = 0; // TODO: Set from corresponding high level value
+		tmc5160.registers.bits.global_scaler.bit.global_scaler  = SCALE(tmc5160.high_level_current, 0, tmc5160.max_current, 0, 255);
 
 		// tmc5160.registers.bits.offset_read // R
 
-		tmc5160.registers.bits.ihold_irun.bit.ihold             = 0;  // TODO: Set from corresponding high level value
-		tmc5160.registers.bits.ihold_irun.bit.irun              = 0;  // TODO: Set from corresponding high level value
-		tmc5160.registers.bits.ihold_irun.bit.ihold_delay       = 0;  // TODO: Set from corresponding high level value
-		tmc5160.registers.bits.tpowerdown.bit.tpowerdown        = 0;  // TODO: Set from corresponding high level value
+		tmc5160.registers.bits.ihold_irun.bit.ihold             = SCALE(tmc5160.high_level_standstill_current, 0, tmc5160.high_level_current, 0, 31);
+		tmc5160.registers.bits.ihold_irun.bit.irun              = SCALE(tmc5160.high_level_motor_run_current, 0, tmc5160.high_level_current, 0, 31);
+		tmc5160.registers.bits.ihold_irun.bit.ihold_delay       = SCALE(tmc5160.high_level_standstill_delay_time, 0, 327, 0, 15);
+		tmc5160.registers.bits.tpowerdown.bit.tpowerdown        = SCALE(tmc5160.high_level_power_down_time, 0, 5570, 0, 255);
 		// tmc5160.registers.bits.tstep // R
-		tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs            = 500;
-		tmc5160.registers.bits.tcoolthrs.bit.tcoolthrs          = 500;
-		tmc5160.registers.bits.thigh.bit.thigh                  = 1000;
+		tmc5160.registers.bits.tpwmthrs.bit.tpwmthrs            = MIN(TCP5160_CLOCK_FREQUENCY/(tmc5160.high_level_stealth_threshold*256), 0xFFFFF);
+		tmc5160.registers.bits.tcoolthrs.bit.tcoolthrs          = MIN(TCP5160_CLOCK_FREQUENCY/(tmc5160.high_level_coolstep_threshold*256), 0xFFFFF);
+		tmc5160.registers.bits.thigh.bit.thigh                  = MIN(TCP5160_CLOCK_FREQUENCY/(tmc5160.high_level_classic_threshold*256), 0xFFFFF);
 
 		tmc5160.registers.bits.rampmode.bit.rampmode            = 0;
 		tmc5160.registers.bits.xactual.bit.xactual              = 0;
 		// tmc5160.registers.bits.vactual // R
-		tmc5160.registers.bits.vstart.bit.vstart                = 0;
-		tmc5160.registers.bits.a1.bit.a1                        = 0;
-		tmc5160.registers.bits.v1.bit.v1                        = 0;
-		tmc5160.registers.bits.amax.bit.amax                    = 0;
-		tmc5160.registers.bits.vmax.bit.vmax                    = 0;
-		tmc5160.registers.bits.d1.bit.d1                        = 0;
-		tmc5160.registers.bits.vstop.bit.vstop                  = 0;
-		tmc5160.registers.bits.tzerowait.bit.tzerowait          = 0; // TODO: Set from corresponding high level value
+		tmc5160.registers.bits.vstart.bit.vstart                = 10;
+		tmc5160.registers.bits.a1.bit.a1                        = 2000;
+		tmc5160.registers.bits.v1.bit.v1                        = 10000;
+		tmc5160.registers.bits.amax.bit.amax                    = 1000;
+		tmc5160.registers.bits.vmax.bit.vmax                    = 51200;
+		tmc5160.registers.bits.dmax.bit.dmax                    = 1000;
+		tmc5160.registers.bits.d1.bit.d1                        = 2000;
+		tmc5160.registers.bits.vstop.bit.vstop                  = 20;
+		tmc5160.registers.bits.tzerowait.bit.tzerowait          = SCALE(tmc5160.high_level_ramp_zero_wait, 0, 2796, 0, 0xFFFF);
 		tmc5160.registers.bits.xtarget.bit.xtarget              = 0;
 
 		tmc5160.registers.bits.vdcmin.bit.velocity              = 0;
@@ -430,9 +431,9 @@ void tmc5160_init_registers(const bool read_from_tmc5160, const bool write_to_tm
 		// tmc5160.registers.bits.mscnt // R
 		// tmc5160.registers.bits.mscuract // R
 
-		tmc5160.registers.bits.chopconf.bit.toff                = 0;
-		tmc5160.registers.bits.chopconf.bit.hstrt               = 5;
-		tmc5160.registers.bits.chopconf.bit.hend                = 2;
+		tmc5160.registers.bits.chopconf.bit.toff                = 5;
+		tmc5160.registers.bits.chopconf.bit.hstrt               = 4;
+		tmc5160.registers.bits.chopconf.bit.hend                = 0;
 		tmc5160.registers.bits.chopconf.bit.fd3                 = 0;
 		tmc5160.registers.bits.chopconf.bit.disfdcc             = 0;
 		tmc5160.registers.bits.chopconf.bit.chm                 = 0;
@@ -446,9 +447,9 @@ void tmc5160_init_registers(const bool read_from_tmc5160, const bool write_to_tm
 		tmc5160.registers.bits.chopconf.bit.diss2g              = 0;
 		tmc5160.registers.bits.chopconf.bit.diss2vs             = 0;
 
-		tmc5160.registers.bits.coolconf.bit.semin               = 0;
+		tmc5160.registers.bits.coolconf.bit.semin               = 2;
 		tmc5160.registers.bits.coolconf.bit.seup                = 0;
-		tmc5160.registers.bits.coolconf.bit.semax               = 0;
+		tmc5160.registers.bits.coolconf.bit.semax               = 10;
 		tmc5160.registers.bits.coolconf.bit.sedn                = 0;
 		tmc5160.registers.bits.coolconf.bit.seimin              = 0;
 		tmc5160.registers.bits.coolconf.bit.sgt                 = 0;
@@ -459,14 +460,14 @@ void tmc5160_init_registers(const bool read_from_tmc5160, const bool write_to_tm
 
 		// tmc5160.registers.bits.drv_status // R
 		
-		tmc5160.registers.bits.pwmconf.bit.pwm_ofs              = 0;
-		tmc5160.registers.bits.pwmconf.bit.pwm_grad             = 0;
-		tmc5160.registers.bits.pwmconf.bit.pwm_freq             = 0;
-		tmc5160.registers.bits.pwmconf.bit.pwm_autoscale        = 0;
-		tmc5160.registers.bits.pwmconf.bit.pwm_autograd         = 0;
+		tmc5160.registers.bits.pwmconf.bit.pwm_ofs              = 30;
+		tmc5160.registers.bits.pwmconf.bit.pwm_grad             = 1;
+		tmc5160.registers.bits.pwmconf.bit.pwm_freq             = 1;
+		tmc5160.registers.bits.pwmconf.bit.pwm_autoscale        = 1;
+		tmc5160.registers.bits.pwmconf.bit.pwm_autograd         = 1;
 		tmc5160.registers.bits.pwmconf.bit.freewheel            = 0;
-		tmc5160.registers.bits.pwmconf.bit.pwm_reg              = 0;
-		tmc5160.registers.bits.pwmconf.bit.pwm_lim              = 0;
+		tmc5160.registers.bits.pwmconf.bit.pwm_reg              = 4;
+		tmc5160.registers.bits.pwmconf.bit.pwm_lim              = 12;
 
 		// tmc5160.registers.bits.pwm_scale // R
 		// tmc5160.registers.bits.pwm_auto // R
@@ -561,18 +562,29 @@ void tmc5160_init(void) {
 	memset(&tmc5160, 0, sizeof(TMC5160));
 
 	// TODO: Get max current from eeprom or solder bridge across pin or similar?
-	tmc5160.max_current                      = 2300;
+#if 0
+	tmc5160.max_current                      = 1000; // 2300
 
-	tmc5160.high_level_current               = 1500;
-	tmc5160.high_level_motor_run_current     = 1500;
-	tmc5160.high_level_standstill_current    = 1000;
+	tmc5160.high_level_current               = 800;
+	tmc5160.high_level_motor_run_current     = 800;
+	tmc5160.high_level_standstill_current    = 600;
+#else
+	tmc5160.max_current                      = 4700; // 2300
 
+	tmc5160.high_level_current               = 4700;
+	tmc5160.high_level_motor_run_current     = 4700;
+	tmc5160.high_level_standstill_current    = 4700;
+#endif
+
+	tmc5160.high_level_stealth_threshold     = 500;
+	tmc5160.high_level_coolstep_threshold    = 500;
+	tmc5160.high_level_classic_threshold     = 1000;
 	tmc5160.high_level_last_steps            = 0;
 	tmc5160.high_level_ramp_zero_wait        = 100;
 	tmc5160.high_level_standstill_delay_time = 50;
 	tmc5160.high_level_power_down_time       = 250;
 
-//	tmc5160_init_registers(true, true, true);
+	tmc5160_init_registers(true, true, true);
 
 	const XMC_GPIO_CONFIG_t led_config = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
