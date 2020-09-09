@@ -4,9 +4,9 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 2
-Title "Silent Stepper V2 Bricklet"
+Title "Performance Stepper V2 Bricklet"
 Date "2020-01-23"
-Rev "2.1"
+Rev "2.2"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
 Comment2 "Copyright (©) 2020, T.Schneidermann <tim@tinkerforge.com>"
@@ -180,12 +180,12 @@ $EndComp
 $Comp
 L tinkerforge:CONN_01X02 P103
 U 1 1 58233528
-P 3900 3500
-F 0 "P103" H 3900 3650 50  0000 C CNN
-F 1 "BOOT" V 4000 3500 50  0000 C CNN
-F 2 "kicad-libraries:SolderJumper" H 3900 3400 50  0001 C CNN
-F 3 "" H 3900 3400 50  0000 C CNN
-	1    3900 3500
+P 3650 7350
+F 0 "P103" H 3650 7500 50  0000 C CNN
+F 1 "BOOT" V 3750 7350 50  0000 C CNN
+F 2 "kicad-libraries:SolderJumper" H 3650 7250 50  0001 C CNN
+F 3 "" H 3650 7250 50  0000 C CNN
+	1    3650 7350
 	-1   0    0    1   
 $EndComp
 $Comp
@@ -242,16 +242,16 @@ Wire Wire Line
 $Comp
 L tinkerforge:GND #PWR07
 U 1 1 5828358D
-P 4150 3600
-F 0 "#PWR07" H 4150 3600 30  0001 C CNN
-F 1 "GND" H 4150 3530 30  0001 C CNN
-F 2 "" H 4150 3600 60  0001 C CNN
-F 3 "" H 4150 3600 60  0001 C CNN
-	1    4150 3600
+P 3900 7450
+F 0 "#PWR07" H 3900 7450 30  0001 C CNN
+F 1 "GND" H 3900 7380 30  0001 C CNN
+F 2 "" H 3900 7450 60  0001 C CNN
+F 3 "" H 3900 7450 60  0001 C CNN
+	1    3900 7450
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4150 3550 4150 3600
+	3900 7400 3900 7450
 Wire Wire Line
 	2450 1950 3000 1950
 Wire Wire Line
@@ -325,12 +325,12 @@ SPI Master\nP0.6 : CH1-DX0 : MISO\nP0.7 : CH1-DOUT : MOSI\nP0.8 : CH1-SCLKOUT : 
 $Comp
 L tinkerforge:CONN_01X01 P102
 U 1 1 590B4637
-P 3900 3150
-F 0 "P102" H 3850 3050 50  0000 C CNN
-F 1 "DEBUG" V 4000 3150 50  0000 C CNN
-F 2 "kicad-libraries:DEBUG_PAD" H 3900 3150 50  0001 C CNN
-F 3 "" H 3900 3150 50  0000 C CNN
-	1    3900 3150
+P 3650 7100
+F 0 "P102" H 3600 7000 50  0000 C CNN
+F 1 "DEBUG" V 3750 7100 50  0000 C CNN
+F 2 "kicad-libraries:DEBUG_PAD" H 3650 7100 50  0001 C CNN
+F 3 "" H 3650 7100 50  0000 C CNN
+	1    3650 7100
 	-1   0    0    1   
 $EndComp
 Text GLabel 4300 5500 0    47   Output ~ 0
@@ -470,15 +470,12 @@ Connection ~ 4300 1650
 NoConn ~ 4800 7500
 NoConn ~ 4800 7400
 Wire Wire Line
-	4100 3550 4150 3550
+	3850 7400 3900 7400
 Wire Wire Line
 	4800 3050 4600 3050
-NoConn ~ 4800 3350
 NoConn ~ 4500 6000
 NoConn ~ 4500 5300
 NoConn ~ 4500 5100
-NoConn ~ 4800 7300
-NoConn ~ 4800 7200
 NoConn ~ 4800 6800
 NoConn ~ 4800 4350
 NoConn ~ 4800 4250
@@ -1174,7 +1171,6 @@ $EndComp
 Wire Wire Line
 	7050 850  7300 850 
 NoConn ~ 4800 4050
-NoConn ~ 4800 3250
 $Comp
 L tinkerforge:Rs R25
 U 1 1 5E365BAB
@@ -1233,10 +1229,6 @@ Wire Wire Line
 Wire Wire Line
 	8550 2050 8550 2750
 NoConn ~ 8800 1550
-Wire Wire Line
-	4100 3150 4800 3150
-Wire Wire Line
-	4100 3450 4800 3450
 NoConn ~ 4800 3850
 $Comp
 L tinkerforge:Rs R27
@@ -1357,4 +1349,87 @@ Text GLabel 4600 4150 0    50   Input ~ 0
 TEMP
 Wire Wire Line
 	4600 4150 4800 4150
+Wire Wire Line
+	4700 7100 4700 7200
+Wire Wire Line
+	4700 7200 4800 7200
+Wire Wire Line
+	3850 7100 4700 7100
+Wire Wire Line
+	3850 7300 4800 7300
+$Comp
+L tinkerforge:CONN_01X02 P7
+U 1 1 5F5E052F
+P 2950 3600
+F 0 "P7" H 2950 3750 50  0000 C CNN
+F 1 "S" V 3050 3600 50  0000 C CNN
+F 2 "kicad-libraries:SolderJumper" H 2950 3500 50  0001 C CNN
+F 3 "" H 2950 3500 50  0000 C CNN
+	1    2950 3600
+	-1   0    0    1   
+$EndComp
+$Comp
+L tinkerforge:CONN_01X02 P6
+U 1 1 5F5EAE3C
+P 2950 3300
+F 0 "P6" H 2950 3450 50  0000 C CNN
+F 1 "M" V 3050 3300 50  0000 C CNN
+F 2 "kicad-libraries:SolderJumper" H 2950 3200 50  0001 C CNN
+F 3 "" H 2950 3200 50  0000 C CNN
+	1    2950 3300
+	-1   0    0    1   
+$EndComp
+$Comp
+L tinkerforge:CONN_01X02 P5
+U 1 1 5F5EB4BA
+P 2950 3000
+F 0 "P5" H 2950 3150 50  0000 C CNN
+F 1 "L" V 3050 3000 50  0000 C CNN
+F 2 "kicad-libraries:SolderJumper" H 2950 2900 50  0001 C CNN
+F 3 "" H 2950 2900 50  0000 C CNN
+	1    2950 3000
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	3150 3050 3300 3050
+Wire Wire Line
+	3300 3050 3300 3350
+Wire Wire Line
+	3300 3350 3150 3350
+Wire Wire Line
+	3300 3350 3300 3650
+Wire Wire Line
+	3300 3650 3150 3650
+Connection ~ 3300 3350
+Wire Wire Line
+	3300 3650 3300 3800
+Connection ~ 3300 3650
+$Comp
+L tinkerforge:GND #PWR0112
+U 1 1 5F6168ED
+P 3300 3800
+F 0 "#PWR0112" H 3300 3800 30  0001 C CNN
+F 1 "GND" H 3300 3730 30  0001 C CNN
+F 2 "" H 3300 3800 60  0001 C CNN
+F 3 "" H 3300 3800 60  0001 C CNN
+	1    3300 3800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3150 2950 3800 2950
+Wire Wire Line
+	3800 3150 4800 3150
+Wire Wire Line
+	3150 3250 4800 3250
+Wire Wire Line
+	3800 2950 3800 3150
+Wire Wire Line
+	3150 3550 3800 3550
+Wire Wire Line
+	3800 3550 3800 3350
+Wire Wire Line
+	3800 3350 4800 3350
+NoConn ~ 4800 3450
+Text Notes 2700 2850 0    50   ~ 0
+Shunt Version
 $EndSCHEMATC

@@ -1,4 +1,4 @@
-update=Fr 24 Apr 2020 15:33:53 CEST
+update=Mi 09 Sep 2020 10:26:21 CEST
 version=1
 last_client=kicad
 [cvpcb]
@@ -29,7 +29,7 @@ ERC_TestSimilarLabels=1
 [pcbnew]
 version=1
 PageLayoutDescrFile=
-LastNetListRead=silent-stepper-v2.net
+LastNetListRead=performance-stepper-v2.net
 CopperLayerCount=4
 BoardThickness=1.6
 AllowMicroVias=0
@@ -87,7 +87,7 @@ OthersTextUpright=1
 SolderMaskClearance=0
 SolderMaskMinWidth=0
 SolderPasteClearance=0
-SolderPasteRatio=-0
+SolderPasteRatio=0
 [pcbnew/Layer.F.Cu]
 Name=F.Cu
 Type=1
