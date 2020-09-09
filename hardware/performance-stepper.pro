@@ -1,4 +1,4 @@
-update=Mi 09 Sep 2020 10:26:21 CEST
+update=Mi 09 Sep 2020 14:12:59 CEST
 version=1
 last_client=kicad
 [cvpcb]
@@ -29,7 +29,7 @@ ERC_TestSimilarLabels=1
 [pcbnew]
 version=1
 PageLayoutDescrFile=
-LastNetListRead=performance-stepper-v2.net
+LastNetListRead=performance-stepper.net
 CopperLayerCount=4
 BoardThickness=1.6
 AllowMicroVias=0

@@ -1,4 +1,4 @@
-Silent Stepper Bricklet 2.0
+Performance Stepper Bricklet 1.0
 ===========================
 
 **This Bricklet is currently in development.**
