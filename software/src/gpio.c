@@ -1,4 +1,4 @@
-/* silent-stepper-v2-bricklet
+/* performance-stepper-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
  * gpio.c: Driver for GPIO inputs/interrupts
@@ -70,24 +70,24 @@ static inline void __attribute__((optimize("-O3"))) __attribute__ ((section (".r
 	// TODO: handle callback here
 
 	// Check if action is necessary
-	if(value && (gpio.action[channel] & SILENT_STEPPER_V2_GPIO_ACTION_EMERGENCY_STOP_RISING_EDGE)) {
+	if(value && (gpio.action[channel] & PERFORMANCE_STEPPER_GPIO_ACTION_EMERGENCY_STOP_RISING_EDGE)) {
 		gpio.stop_emergency = true;
-	} else if(value && (gpio.action[channel] & SILENT_STEPPER_V2_GPIO_ACTION_NORMAL_STOP_RISING_EDGE)) {
+	} else if(value && (gpio.action[channel] & PERFORMANCE_STEPPER_GPIO_ACTION_NORMAL_STOP_RISING_EDGE)) {
 		gpio.stop_normal    = true;
-	} else if(!value && (gpio.action[channel] & SILENT_STEPPER_V2_GPIO_ACTION_EMERGENCY_STOP_FALLING_EDGE)) {
+	} else if(!value && (gpio.action[channel] & PERFORMANCE_STEPPER_GPIO_ACTION_EMERGENCY_STOP_FALLING_EDGE)) {
 		gpio.stop_emergency = true;
-	} else if(!value && (gpio.action[channel] & SILENT_STEPPER_V2_GPIO_ACTION_NORMAL_STOP_FALLING_EDGE)) {
+	} else if(!value && (gpio.action[channel] & PERFORMANCE_STEPPER_GPIO_ACTION_NORMAL_STOP_FALLING_EDGE)) {
 		gpio.stop_normal    = true;
 	}
 
 	// Set LED
-	if(gpio.gpio_led_flicker_state[channel].config == SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_HIGH) {
+	if(gpio.gpio_led_flicker_state[channel].config == PERFORMANCE_STEPPER_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_HIGH) {
 		if(value) {
 			XMC_GPIO_SetOutputLow(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
 		} else {
 			XMC_GPIO_SetOutputHigh(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
 		}
-	} else if(gpio.gpio_led_flicker_state[channel].config == SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW) {
+	} else if(gpio.gpio_led_flicker_state[channel].config == PERFORMANCE_STEPPER_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW) {
 		if(value) {
 			XMC_GPIO_SetOutputHigh(gpio_led_pins[channel].port, gpio_led_pins[channel].pin);
 		} else {
@@ -111,12 +111,12 @@ bool gpio_is_motion_disabled(void) {
 void gpio_init(void) {
     memset(&gpio, 0, sizeof(GPIO));
 
-	gpio.action[0]                        = SILENT_STEPPER_V2_GPIO_ACTION_NONE;
-	gpio.action[1]                        = SILENT_STEPPER_V2_GPIO_ACTION_NONE;
+	gpio.action[0]                        = PERFORMANCE_STEPPER_GPIO_ACTION_NONE;
+	gpio.action[1]                        = PERFORMANCE_STEPPER_GPIO_ACTION_NONE;
 	gpio.debounce                         = 200; // 200ms default
 	gpio.stop_deceleration                = 0xFFFF;
-	gpio.gpio_led_flicker_state[0].config = SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW;
-	gpio.gpio_led_flicker_state[1].config = SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW;
+	gpio.gpio_led_flicker_state[0].config = PERFORMANCE_STEPPER_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW;
+	gpio.gpio_led_flicker_state[1].config = PERFORMANCE_STEPPER_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW;
 
 
 	// Init GPIO IRQs

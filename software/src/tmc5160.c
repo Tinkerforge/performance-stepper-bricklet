@@ -1,4 +1,4 @@
-/* silent-stepper-v2-bricklet
+/* performance-stepper-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
  * tmc5160.c: Driver for TMC5160
@@ -119,7 +119,7 @@ static void tmc5160_task_handle_gpio(void) {
 		// TODO: Handle emergency stop
 	} else if(gpio.stop_normal) {
 		gpio.stop_normal = false;
-		tmc5160.registers.bits.rampmode.bit.rampmode = SILENT_STEPPER_V2_RAMPING_MODE_VELOCITY_POSITIVE;
+		tmc5160.registers.bits.rampmode.bit.rampmode = PERFORMANCE_STEPPER_RAMPING_MODE_VELOCITY_POSITIVE;
 		tmc5160.registers.bits.vmax.bit.vmax = 0;
 		tmc5160.registers.bits.amax.bit.amax = gpio.stop_deceleration;
 
@@ -180,7 +180,7 @@ static void tmc5160_task_handle_leds(void) {
 	uint32_t t = system_timer_get_ms();
 	if(tmc5160.error_led_flicker_state.config == LED_FLICKER_CONFIG_HEARTBEAT) {
 		led_flicker_tick(&tmc5160.error_led_flicker_state, t, TMC5160_ERROR_LED_PIN);
-	} else if(tmc5160.error_led_flicker_state.config == SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR) {
+	} else if(tmc5160.error_led_flicker_state.config == PERFORMANCE_STEPPER_ERROR_LED_CONFIG_SHOW_ERROR) {
 		tmc5160_task_handle_error_led(t);
 	}
 
@@ -190,7 +190,7 @@ static void tmc5160_task_handle_leds(void) {
 
 	if(tmc5160.steps_led_flicker_state.config == LED_FLICKER_CONFIG_HEARTBEAT) {
 		led_flicker_tick(&tmc5160.steps_led_flicker_state, t, TMC5160_STEPS_LED_PIN);
-	} else if(tmc5160.steps_led_flicker_state.config == SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS) {
+	} else if(tmc5160.steps_led_flicker_state.config == PERFORMANCE_STEPPER_STEPS_LED_CONFIG_SHOW_STEPS) {
 		tmc5160_task_handle_steps_led(t);
 	}
 
@@ -324,10 +324,10 @@ void tmc5160_init_registers(const bool read_from_tmc5160, const bool write_to_tm
 
 		tmc5160.registers.bits.factory_conf.bit.fclktrim        = 0;
 
-		tmc5160.registers.bits.short_conf.bit.s2vs_level        = 6;
-		tmc5160.registers.bits.short_conf.bit.s2g_level         = 6;
-		tmc5160.registers.bits.short_conf.bit.shortfilter       = 1;
-		tmc5160.registers.bits.short_conf.bit.shortdelay        = 0;
+		tmc5160.registers.bits.short_conf.bit.s2vs_level        = 12; // Use up to 15 if short detection false-positives occur
+		tmc5160.registers.bits.short_conf.bit.s2g_level         = 12; // Use up to 15 if short detection false-positives occur
+		tmc5160.registers.bits.short_conf.bit.shortfilter       = 3;
+		tmc5160.registers.bits.short_conf.bit.shortdelay        = 1;
 
 		tmc5160.registers.bits.drv_conf.bit.bbmtime             = 0;
 		tmc5160.registers.bits.drv_conf.bit.bbmclks             = 4;
@@ -461,8 +461,8 @@ void tmc5160_init_registers(const bool read_from_tmc5160, const bool write_to_tm
 		// tmc5160.registers.bits.drv_status // R
 		
 		tmc5160.registers.bits.pwmconf.bit.pwm_ofs              = 30;
-		tmc5160.registers.bits.pwmconf.bit.pwm_grad             = 1;
-		tmc5160.registers.bits.pwmconf.bit.pwm_freq             = 1;
+		tmc5160.registers.bits.pwmconf.bit.pwm_grad             = 15;
+		tmc5160.registers.bits.pwmconf.bit.pwm_freq             = 1; // We use the 12MHz internal clk, use 0 for 23.4kHz or 1 for 35.1kHz
 		tmc5160.registers.bits.pwmconf.bit.pwm_autoscale        = 1;
 		tmc5160.registers.bits.pwmconf.bit.pwm_autograd         = 1;
 		tmc5160.registers.bits.pwmconf.bit.freewheel            = 0;
@@ -561,13 +561,12 @@ void tmc5160_init_registers(const bool read_from_tmc5160, const bool write_to_tm
 void tmc5160_init(void) {
 	memset(&tmc5160, 0, sizeof(TMC5160));
 
-	// TODO: Get max current from eeprom or solder bridge across pin or similar?
-#if 0
-	tmc5160.max_current                      = 1000; // 2300
+#if 1
+	tmc5160.max_current                      = 2300;
 
-	tmc5160.high_level_current               = 800;
-	tmc5160.high_level_motor_run_current     = 800;
-	tmc5160.high_level_standstill_current    = 600;
+	tmc5160.high_level_current               = 2000;
+	tmc5160.high_level_motor_run_current     = 2000;
+	tmc5160.high_level_standstill_current    = 1000;
 #else
 	tmc5160.max_current                      = 4700; // 2300
 
@@ -593,9 +592,9 @@ void tmc5160_init(void) {
 	XMC_GPIO_Init(TMC5160_ENABLE_LED_PIN, &led_config);
 	XMC_GPIO_Init(TMC5160_STEPS_LED_PIN,  &led_config);
 	XMC_GPIO_Init(TMC5160_ERROR_LED_PIN,  &led_config);
-	tmc5160.enable_led_flicker_state.config = SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE;
-	tmc5160.steps_led_flicker_state.config  = SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS;
-	tmc5160.error_led_flicker_state.config  = SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR;
+	tmc5160.enable_led_flicker_state.config = PERFORMANCE_STEPPER_ENABLE_LED_CONFIG_SHOW_ENABLE;
+	tmc5160.steps_led_flicker_state.config  = PERFORMANCE_STEPPER_STEPS_LED_CONFIG_SHOW_STEPS;
+	tmc5160.error_led_flicker_state.config  = PERFORMANCE_STEPPER_ERROR_LED_CONFIG_SHOW_ERROR;
 
 	coop_task_init(&tmc5160_task, tmc5160_tick_task);
 

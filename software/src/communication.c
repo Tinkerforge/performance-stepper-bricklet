@@ -1,4 +1,4 @@
-/* silent-stepper-v2-bricklet
+/* performance-stepper-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
  * communication.c: TFP protocol message handling
@@ -61,10 +61,11 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_STEALTH_CONFIGURATION: return get_stealth_configuration(message, response);
 		case FID_SET_COOLSTEP_CONFIGURATION: return set_coolstep_configuration(message);
 		case FID_GET_COOLSTEP_CONFIGURATION: return get_coolstep_configuration(message, response);
-		case FID_SET_MISC_CONFIGURATION: return set_misc_configuration(message);
-		case FID_GET_MISC_CONFIGURATION: return get_misc_configuration(message, response);
+		case FID_SET_SHORT_CONFIGURATION: return set_short_configuration(message);
+		case FID_GET_SHORT_CONFIGURATION: return get_short_configuration(message, response);
 		case FID_GET_DRIVER_STATUS: return get_driver_status(message, response);
 		case FID_GET_INPUT_VOLTAGE: return get_input_voltage(message, response);
+		case FID_GET_TEMPERATURE: return get_temperature(message, response);
 		case FID_SET_GPIO_CONFIGURATION: return set_gpio_configuration(message);
 		case FID_GET_GPIO_CONFIGURATION: return get_gpio_configuration(message, response);
 		case FID_SET_GPIO_ACTION: return set_gpio_action(message);
@@ -86,7 +87,7 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 
 
 BootloaderHandleMessageResponse set_motion_configuration(const SetMotionConfiguration *data) {
-	if(data->ramping_mode > SILENT_STEPPER_V2_RAMPING_MODE_HOLD) {
+	if(data->ramping_mode > PERFORMANCE_STEPPER_RAMPING_MODE_HOLD) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 	if((data->velocity_start < 0)   || (data->velocity_start > 0x1FFFF)) { // 18 bit
@@ -223,7 +224,7 @@ BootloaderHandleMessageResponse get_remaining_steps(const GetRemainingSteps *dat
 }
 
 BootloaderHandleMessageResponse set_step_configuration(const SetStepConfiguration *data) {
-	if(data->step_resolution > SILENT_STEPPER_V2_STEP_RESOLUTION_1) {
+	if(data->step_resolution > PERFORMANCE_STEPPER_STEP_RESOLUTION_1) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -243,11 +244,9 @@ BootloaderHandleMessageResponse get_step_configuration(const GetStepConfiguratio
 }
 
 BootloaderHandleMessageResponse set_motor_current(const SetMotorCurrent *data) {
-	// 2300mA max (TODO: Depends on resistor)
+	tmc5160.high_level_current = MIN(tmc5160.max_current, data->current);
 
-	tmc5160.high_level_current = data->current;
-
-	tmc5160.registers.bits.global_scaler.bit.global_scaler = SCALE(data->current, 0, 2300, 0, 255);
+	tmc5160.registers.bits.global_scaler.bit.global_scaler = SCALE(tmc5160.high_level_current, 0, tmc5160.max_current, 0, 255);
 	tmc5160.registers_write[TMC5160_REG_GLOBAL_SCALER]     = true;
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
@@ -267,7 +266,7 @@ BootloaderHandleMessageResponse set_enabled(const SetEnabled *data) {
 		XMC_GPIO_SetOutputHigh(TMC5160_ENABLE_PIN);
 	}
 
-	if(tmc5160.enable_led_flicker_state.config == SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE) {
+	if(tmc5160.enable_led_flicker_state.config == PERFORMANCE_STEPPER_ENABLE_LED_CONFIG_SHOW_ENABLE) {
 		if(data->enabled) {
 			XMC_GPIO_SetOutputLow(TMC5160_ENABLE_LED_PIN);
 		} else {
@@ -322,8 +321,6 @@ BootloaderHandleMessageResponse set_basic_configuration(const SetBasicConfigurat
 	tmc5160.registers.bits.chopconf.bit.vhighchm      = data->high_velocity_chopper_mode;
 	tmc5160.registers_write[TMC5160_REG_CHOPCONF]     = true;
 
-	// TODO: Add high velocity fullstep selection
-
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
@@ -354,7 +351,7 @@ BootloaderHandleMessageResponse set_spreadcycle_configuration(const SetSpreadcyc
 
 
 	tmc5160.registers.bits.chopconf.bit.toff      = data->slow_decay_duration;
-//	tmc5160.registers.bits.chopconf.bit.rndtf     = data->enable_random_slow_decay;
+	tmc5160.registers.bits.chopconf.bit.vhighfs   = data->high_velocity_fullstep;
 	if(data->chopper_mode) {
 		tmc5160.registers.bits.chopconf.bit.hstrt = data->fast_decay_duration & 0b111;
 		tmc5160.registers.bits.chopconf.bit.fd3   = (data->fast_decay_duration >> 3) & 0b1;
@@ -376,7 +373,7 @@ BootloaderHandleMessageResponse set_spreadcycle_configuration(const SetSpreadcyc
 BootloaderHandleMessageResponse get_spreadcycle_configuration(const GetSpreadcycleConfiguration *data, GetSpreadcycleConfiguration_Response *response) {
 	response->header.length = sizeof(GetSpreadcycleConfiguration_Response);
 	response->slow_decay_duration           = tmc5160.registers.bits.chopconf.bit.toff;
-//	response->enable_random_slow_decay      = tmc5160.registers.bits.chopconf.bit.rndtf;
+	response->high_velocity_fullstep        = tmc5160.registers.bits.chopconf.bit.vhighfs;
 	if(tmc5160.registers.bits.chopconf.bit.chm) {
 		response->fast_decay_duration       = tmc5160.registers.bits.chopconf.bit.hstrt | (tmc5160.registers.bits.chopconf.bit.fd3 << 3);
 		response->sine_wave_offset          = tmc5160.registers.bits.chopconf.bit.hend;
@@ -404,24 +401,28 @@ BootloaderHandleMessageResponse set_stealth_configuration(const SetStealthConfig
 	tmc5160.registers.bits.pwmconf.bit.freewheel     = data->freewheel_mode;
 	tmc5160.registers_write[TMC5160_REG_GCONF]       = true;
 
-	tmc5160.registers.bits.pwmconf.bit.pwm_ofs       = data->amplitude; // TODO: amplitude -> offfset?
+	tmc5160.registers.bits.pwmconf.bit.pwm_ofs       = data->offset;
 	tmc5160.registers.bits.pwmconf.bit.pwm_grad      = data->gradient;
 	tmc5160.registers.bits.pwmconf.bit.pwm_autoscale = data->enable_autoscale;
-	tmc5160.registers.bits.pwmconf.bit.pwm_autograd  = data->force_symmetric; // TODO: autograd
+	tmc5160.registers.bits.pwmconf.bit.pwm_autograd  = data->enable_autogradient;
 	tmc5160.registers.bits.pwmconf.bit.freewheel     = data->freewheel_mode;
+	tmc5160.registers.bits.pwmconf.bit.pwm_reg       = data->regulation_loop_gradient;
+	tmc5160.registers.bits.pwmconf.bit.pwm_lim       = data->amplitude_limit;
 	tmc5160.registers_write[TMC5160_REG_PWMCONF]     = true;
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
 BootloaderHandleMessageResponse get_stealth_configuration(const GetStealthConfiguration *data, GetStealthConfiguration_Response *response) {
-	response->header.length = sizeof(GetStealthConfiguration_Response);
-	response->enable_stealth   = tmc5160.registers.bits.gconf.bit.en_pwm_mode;
-	response->amplitude        = tmc5160.registers.bits.pwmconf.bit.pwm_ofs;
-	response->gradient         = tmc5160.registers.bits.pwmconf.bit.pwm_grad;
-	response->enable_autoscale = tmc5160.registers.bits.pwmconf.bit.pwm_autoscale;
-	response->force_symmetric  = tmc5160.registers.bits.pwmconf.bit.pwm_autograd;
-	response->freewheel_mode   = tmc5160.registers.bits.pwmconf.bit.freewheel;
+	response->header.length            = sizeof(GetStealthConfiguration_Response);
+	response->enable_stealth           = tmc5160.registers.bits.gconf.bit.en_pwm_mode;
+	response->offset                   = tmc5160.registers.bits.pwmconf.bit.pwm_ofs;
+	response->gradient                 = tmc5160.registers.bits.pwmconf.bit.pwm_grad;
+	response->enable_autoscale         = tmc5160.registers.bits.pwmconf.bit.pwm_autoscale;
+	response->enable_autogradient      = tmc5160.registers.bits.pwmconf.bit.pwm_autograd;
+	response->freewheel_mode           = tmc5160.registers.bits.pwmconf.bit.freewheel;
+	response->regulation_loop_gradient = tmc5160.registers.bits.pwmconf.bit.pwm_reg;
+	response->amplitude_limit          = tmc5160.registers.bits.pwmconf.bit.pwm_lim;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -462,30 +463,46 @@ BootloaderHandleMessageResponse get_coolstep_configuration(const GetCoolstepConf
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
-BootloaderHandleMessageResponse set_misc_configuration(const SetMiscConfiguration *data) {
-	if(data->synchronize_phase_frequency > 15) {
+BootloaderHandleMessageResponse set_short_configuration(const SetShortConfiguration *data) {
+	if((data->short_to_voltage_level < 4)  ||
+	   (data->short_to_voltage_level > 15) ||
+	   (data->short_to_ground_level  < 2)  ||
+	   (data->short_to_ground_level  > 15) ||
+	   (data->spike_filter_bandwidth > PERFORMANCE_STEPPER_SPIKE_FILTER_BANDWIDTH_3000) ||
+	   (data->filter_time            > PERFORMANCE_STEPPER_FILTER_TIME_400)) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	tmc5160.registers.bits.chopconf.bit.diss2g    = data->disable_short_to_ground_protection;
-	// TODO: Set diss2vs here?
-//	tmc5160.registers.bits.chopconf.bit.sync      = data->synchronize_phase_frequency;
-	tmc5160.registers_write[TMC5160_REG_CHOPCONF] = true;
+	tmc5160.registers.bits.chopconf.bit.diss2vs       = data->disable_short_to_voltage_protection;
+	tmc5160.registers.bits.chopconf.bit.diss2g        = data->disable_short_to_ground_protection;
+	tmc5160.registers_write[TMC5160_REG_CHOPCONF]     = true;
 
+	tmc5160.registers.bits.short_conf.bit.s2vs_level  = data->short_to_voltage_level;
+	tmc5160.registers.bits.short_conf.bit.s2g_level   = data->short_to_ground_level;
+	tmc5160.registers.bits.short_conf.bit.shortfilter = data->spike_filter_bandwidth;
+	tmc5160.registers.bits.short_conf.bit.shortdelay  = data->short_detection_delay;
+	tmc5160.registers_write[TMC5160_REG_SHORT_CONF]   = true;
+
+	tmc5160.registers.bits.drv_conf.bit.filt_isense   = data->filter_time;
+	tmc5160.registers_write[TMC5160_REG_DRV_CONF]     = true;
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse get_misc_configuration(const GetMiscConfiguration *data, GetMiscConfiguration_Response *response) {
-	response->header.length = sizeof(GetMiscConfiguration_Response);
-	response->disable_short_to_ground_protection = tmc5160.registers.bits.chopconf.bit.diss2g;
-	// TODO: Set diss2vs here?
-//	response->synchronize_phase_frequency        = tmc5160.registers.bits.chopconf.bit.sync;
+BootloaderHandleMessageResponse get_short_configuration(const GetShortConfiguration *data, GetShortConfiguration_Response *response) {
+	response->header.length                       = sizeof(GetShortConfiguration_Response);
+	response->disable_short_to_voltage_protection = tmc5160.registers.bits.chopconf.bit.diss2vs;
+	response->disable_short_to_ground_protection  = tmc5160.registers.bits.chopconf.bit.diss2g;
+	response->short_to_voltage_level              = tmc5160.registers.bits.short_conf.bit.s2vs_level;
+	response->short_to_ground_level               = tmc5160.registers.bits.short_conf.bit.s2g_level;
+	response->spike_filter_bandwidth              = tmc5160.registers.bits.short_conf.bit.shortfilter;
+	response->short_detection_delay               = tmc5160.registers.bits.short_conf.bit.shortdelay;
+	response->filter_time                         = tmc5160.registers.bits.drv_conf.bit.filt_isense;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
 BootloaderHandleMessageResponse get_driver_status(const GetDriverStatus *data, GetDriverStatus_Response *response) {
-	response->header.length = sizeof(GetDriverStatus_Response);
+	response->header.length             = sizeof(GetDriverStatus_Response);
 
 	response->open_load                 = (tmc5160.registers.bits.drv_status.bit.ola << 0) | (tmc5160.registers.bits.drv_status.bit.olb << 1);
 	response->short_to_ground           = (tmc5160.registers.bits.drv_status.bit.s2ga << 0) | (tmc5160.registers.bits.drv_status.bit.s2gb << 1);
@@ -508,6 +525,13 @@ BootloaderHandleMessageResponse get_driver_status(const GetDriverStatus *data, G
 BootloaderHandleMessageResponse get_input_voltage(const GetInputVoltage *data, GetInputVoltage_Response *response) {
 	response->header.length = sizeof(GetInputVoltage_Response);
 	response->voltage       = voltage.value;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse get_temperature(const GetTemperature *data, GetTemperature_Response *response) {
+	response->header.length = sizeof(GetTemperature_Response);
+	response->temperature   = voltage.temperature;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -560,17 +584,17 @@ BootloaderHandleMessageResponse get_gpio_state(const GetGPIOState *data, GetGPIO
 }
 
 BootloaderHandleMessageResponse set_error_led_config(const SetErrorLEDConfig *data) {
-	if(data->config > SILENT_STEPPER_V2_ERROR_LED_CONFIG_SHOW_ERROR) {
+	if(data->config > PERFORMANCE_STEPPER_ERROR_LED_CONFIG_SHOW_ERROR) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
 	tmc5160.error_led_flicker_state.config = data->config;
 	switch(data->config) {
-		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_OFF:
+		case PERFORMANCE_STEPPER_ERROR_LED_CONFIG_OFF:
 			XMC_GPIO_SetOutputHigh(TMC5160_ERROR_LED_PIN);
 			break;
 
-		case SILENT_STEPPER_V2_ERROR_LED_CONFIG_ON:
+		case PERFORMANCE_STEPPER_ERROR_LED_CONFIG_ON:
 			XMC_GPIO_SetOutputLow(TMC5160_ERROR_LED_PIN);
 			break;
 
@@ -588,21 +612,21 @@ BootloaderHandleMessageResponse get_error_led_config(const GetErrorLEDConfig *da
 }
 
 BootloaderHandleMessageResponse set_enable_led_config(const SetEnableLEDConfig *data) {
-	if(data->config > SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE) {
+	if(data->config > PERFORMANCE_STEPPER_ENABLE_LED_CONFIG_SHOW_ENABLE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
 	tmc5160.enable_led_flicker_state.config = data->config;
 	switch(data->config) {
-		case SILENT_STEPPER_V2_ENABLE_LED_CONFIG_OFF:
+		case PERFORMANCE_STEPPER_ENABLE_LED_CONFIG_OFF:
 			XMC_GPIO_SetOutputHigh(TMC5160_ENABLE_LED_PIN);
 			break;
 
-		case SILENT_STEPPER_V2_ENABLE_LED_CONFIG_ON:
+		case PERFORMANCE_STEPPER_ENABLE_LED_CONFIG_ON:
 			XMC_GPIO_SetOutputLow(TMC5160_ENABLE_LED_PIN);
 			break;
 
-		case SILENT_STEPPER_V2_ENABLE_LED_CONFIG_SHOW_ENABLE:
+		case PERFORMANCE_STEPPER_ENABLE_LED_CONFIG_SHOW_ENABLE:
 			if(XMC_GPIO_GetInput(TMC5160_ENABLE_PIN)) {
 				XMC_GPIO_SetOutputHigh(TMC5160_ENABLE_LED_PIN);
 			} else {
@@ -624,21 +648,21 @@ BootloaderHandleMessageResponse get_enable_led_config(const GetEnableLEDConfig *
 }
 
 BootloaderHandleMessageResponse set_steps_led_config(const SetStepsLEDConfig *data) {
-	if(data->config > SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS) {
+	if(data->config > PERFORMANCE_STEPPER_STEPS_LED_CONFIG_SHOW_STEPS) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
 	tmc5160.steps_led_flicker_state.config = data->config;
 	switch(data->config) {
-		case SILENT_STEPPER_V2_STEPS_LED_CONFIG_OFF:
+		case PERFORMANCE_STEPPER_STEPS_LED_CONFIG_OFF:
 			XMC_GPIO_SetOutputHigh(TMC5160_STEPS_LED_PIN);
 			break;
 
-		case SILENT_STEPPER_V2_STEPS_LED_CONFIG_ON:
+		case PERFORMANCE_STEPPER_STEPS_LED_CONFIG_ON:
 			XMC_GPIO_SetOutputLow(TMC5160_STEPS_LED_PIN);
 			break;
 
-		case SILENT_STEPPER_V2_STEPS_LED_CONFIG_SHOW_STEPS:
+		case PERFORMANCE_STEPPER_STEPS_LED_CONFIG_SHOW_STEPS:
 			XMC_GPIO_SetOutputHigh(TMC5160_STEPS_LED_PIN);
 			break;
 
@@ -656,7 +680,7 @@ BootloaderHandleMessageResponse get_steps_led_config(const GetStepsLEDConfig *da
 }
 
 BootloaderHandleMessageResponse set_gpio_led_config(const SetGPIOLEDConfig *data) {
-	if(data->config > SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW) {
+	if(data->config > PERFORMANCE_STEPPER_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -666,7 +690,7 @@ BootloaderHandleMessageResponse set_gpio_led_config(const SetGPIOLEDConfig *data
 
 	gpio.gpio_led_flicker_state[data->channel].config = data->config;
 	switch(data->config) {
-		case SILENT_STEPPER_V2_GPIO_LED_CONFIG_OFF:
+		case PERFORMANCE_STEPPER_GPIO_LED_CONFIG_OFF:
 			if(data->channel == 0) {
 				XMC_GPIO_SetOutputHigh(GPIO_0_LED_PIN);
 			} else {
@@ -674,7 +698,7 @@ BootloaderHandleMessageResponse set_gpio_led_config(const SetGPIOLEDConfig *data
 			}
 			break;
 
-		case SILENT_STEPPER_V2_GPIO_LED_CONFIG_ON:
+		case PERFORMANCE_STEPPER_GPIO_LED_CONFIG_ON:
 			if(data->channel == 0) {
 				XMC_GPIO_SetOutputLow(GPIO_0_LED_PIN);
 			} else {
@@ -682,7 +706,7 @@ BootloaderHandleMessageResponse set_gpio_led_config(const SetGPIOLEDConfig *data
 			}
 			break;
 
-		case SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_HIGH:
+		case PERFORMANCE_STEPPER_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_HIGH:
 			if(data->channel == 0) {
 				if(gpio.last_interrupt_value[0])	{
 					XMC_GPIO_SetOutputLow(GPIO_0_LED_PIN);
@@ -698,7 +722,7 @@ BootloaderHandleMessageResponse set_gpio_led_config(const SetGPIOLEDConfig *data
 			}
 			break;
 
-		case SILENT_STEPPER_V2_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW:
+		case PERFORMANCE_STEPPER_GPIO_LED_CONFIG_SHOW_GPIO_ACTIVE_LOW:
 			if(data->channel == 0) {
 				if(gpio.last_interrupt_value[0])	{
 					XMC_GPIO_SetOutputHigh(GPIO_0_LED_PIN);

@@ -1,4 +1,4 @@
-/* silent-stepper-v2-bricklet
+/* performance-stepper-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
  * tmc5160.h: Driver for TMC5160
@@ -727,7 +727,7 @@ typedef struct {
 	bool registers_write[TMC5160_NUM_REGISTERS];
 	bool registers_read[TMC5160_NUM_REGISTERS];
 
-	uint16_t max_current;
+	uint16_t max_current; // Absolute maximum as defined by the shunt resistor!
 
 	uint16_t high_level_standstill_current;
 	uint16_t high_level_motor_run_current;

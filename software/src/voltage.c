@@ -1,4 +1,4 @@
-/* silent-stepper-v2-bricklet
+/* performance-stepper-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
  * voltage.c: Driver input voltage measurement

@@ -1,5 +1,5 @@
-Performance Stepper Bricklet 1.0
-===========================
+Performance Stepper Bricklet
+============================
 
 **This Bricklet is currently in development.**
 

@@ -1,7 +1,7 @@
-/* silent-stepper-v2-bricklet
+/* performance-stepper-bricklet
  * Copyright (C) 2019 Olaf Lüke <olaf@tinkerforge.com>
  *
- * main.c: Initialization for Silent Stepper Bricklet 2.0
+ * main.c: Initialization for Performance Stepper Bricklet
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ void main_tick_task(void) {
 
 int main(void) {
 	logging_init();
-	logd("Start Silent Stepper Bricklet 2.0\n\r");
+	logd("Start Performance Stepper Bricklet\n\r");
 
 	communication_init();
 	coop_task_init(&main_task, main_tick_task);

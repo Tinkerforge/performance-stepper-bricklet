@@ -1,7 +1,7 @@
-/* silent-stepper-v2-bricklet
+/* performance-stepper-bricklet
  * Copyright (C) 2019 Olaf Lüke <olaf@tinkerforge.com>
  *
- * config.h: All configurations for Silent Stepper Bricklet 2.0
+ * config.h: All configurations for Performance Stepper Bricklet
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
